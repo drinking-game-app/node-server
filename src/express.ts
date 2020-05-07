@@ -25,6 +25,11 @@ import helmet from "helmet"
 import cors from "cors"
 
 /**
+ * Import Routes
+ */
+import userRoutes from './routes/user.routes'
+
+/**
  * Declare express app
  */
 const app: Application = express();
@@ -52,6 +57,16 @@ app.use(helmet());
  */
 app.use(cors());
 
+/**
+ * Compile to dist directory
+ */
 app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
+
+/**
+ * Mount Routes
+ *
+ */
+app.use("/", userRoutes);
+
 
 export default app;

@@ -1,3 +1,17 @@
+/*
+ * File: index.ts
+ * Project: drinking-game-app-server
+ * Version: 1.0.0
+ * File Created: Thursday, 7th May 2020 10:42:01 am
+ * Author: Eoan O'Dea - eoan@wspace.ie
+ * ---------------
+ * File Description: Entry point for the application, imports express and connects to the database
+ * Last Modified: Thursday, 7th May 2020 11:45:23 am
+ * Modified By: Eoan O'Dea - eoan@wspace.ie
+ * ---------------
+ * Copyright 2020 - WebSpace
+ */
+
 
 
 import config from '../config/config'
