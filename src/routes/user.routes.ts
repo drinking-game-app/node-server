@@ -21,7 +21,7 @@ const prefix = "/api/user"
 
 /**
  * @method POST - Create a new user
- * @method GET - List all users by a track
+ * @method GET - List all users
  */
 router.route(`${prefix}`)
     .post(userCtrl.create)
