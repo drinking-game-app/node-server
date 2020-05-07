@@ -12,13 +12,14 @@
  * Copyright 2020 - WebSpace
  */
 
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 import crypto from 'crypto'
 
 /**
- * Type declaration for User
+ * Type declaration for User Schema Fields
  */
-interface UserInterface extends Document {
+interface IUserDocument extends Document {
+  _id: string;
   name: string;
   created: Date;
   updated: Date;
@@ -29,6 +30,15 @@ interface UserInterface extends Document {
   resetPasswordExpires: Date;
   confirmEmailToken: string;
   confirmEmailTokenExpires: string;
+}
+
+/**
+ * User Schema Methods
+ */
+interface IUserModel extends Model<IUserDocument> {
+  authenticate(plainText: string): boolean;
+  encryptPassword(password: string): string;
+  makeSalt(): string;
 }
 
 /**
@@ -80,7 +90,7 @@ UserSchema
   })
 
 /**
- * Validate the hashed password
+ * Validate the submitted password by the user
  */
 UserSchema.path('hashed_password').validate(function() {
   if (this._password && this._password.length < 6) {
@@ -94,11 +104,15 @@ UserSchema.path('hashed_password').validate(function() {
 /**
  * Declaring methods for the User Schema
  */
+UserSchema.method('authenticate', function(plainText: string): boolean {
+  return this.encryptPassword(plainText) === this.hashed_password
+})
+
 UserSchema.methods = {
-  authenticate: function(plainText: string) {
-    return this.encryptPassword(plainText) === this.hashed_password
-  },
-  encryptPassword: function(password: string) {
+  // authenticate(plainText: string) {
+  //   return this.encryptPassword(plainText) === this.hashed_password
+  // },
+  encryptPassword(password: string) {
     if (!password) return ''
     try {
       return crypto
@@ -109,10 +123,11 @@ UserSchema.methods = {
       return ''
     }
   },
-  makeSalt: function() {
+  makeSalt() {
     return Math.round((new Date().valueOf() * Math.random())) + ''
   }
 }
 
-const User = mongoose.model<UserInterface>("User", UserSchema);
+const User = mongoose.model<IUserDocument, IUserModel>("User", UserSchema);
+
 export default User;
