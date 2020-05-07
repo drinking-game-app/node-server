@@ -11,6 +11,10 @@
     "dev": "nodemon --watch src -e ts,ejs --exec npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drinking-game-app/node-server.git"
+  },
   "keywords": [
     "Express.js",
     "Node.js",
