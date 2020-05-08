@@ -18,6 +18,10 @@ import config from '../config/config'
 import app from './express'
 import mongoose from 'mongoose'
 
+// @ts-ignore
+import sockServer from '@rossmacd/gamesock-server'
+
+
 /**
  * Mongoose Connection configurations
  */
@@ -44,6 +48,13 @@ mongoose.connect(config.mongoUri, options)
 mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${config.mongoUri}`)
 })
+
+// Create http server
+const server = sockServer(app)
+
+
+
+
 
 /**
  * Listen on the specified port, and for any errors
