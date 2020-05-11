@@ -29,7 +29,7 @@ router.route(`${prefix}/signin`)
  * @method GET - Signs out a user
  */
 router.route(`${prefix}/signout`)
-    .get(authCtrl.signout)
+    .get(authCtrl.requireSignin, authCtrl.signout)
 
 
 export default router

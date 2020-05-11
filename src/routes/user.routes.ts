@@ -15,6 +15,8 @@
 
 import express from 'express'
 import * as userCtrl from '../controllers/user.controller'
+import * as authCtrl from '../controllers/auth.controller'
+
 
 const router = express.Router()
 const prefix = "/api/user"
@@ -25,7 +27,7 @@ const prefix = "/api/user"
  */
 router.route(`${prefix}`)
     .post(userCtrl.create)
-    .get(userCtrl.list)
+    .get(authCtrl.requireSignin, userCtrl.list)
 
 /**
  * @method GET - User By ID
@@ -33,9 +35,11 @@ router.route(`${prefix}`)
  * @method DELETE - Delete a user by ID
  */
 router.route(`${prefix}/:id`)
-    .get(userCtrl.show)
-    .put(userCtrl.update)
-    .delete(userCtrl.remove)
+    .get(authCtrl.requireSignin, authCtrl.hasAuthorization, userCtrl.show)
+    .put(authCtrl.requireSignin, authCtrl.hasAuthorization, userCtrl.update)
+    .delete(authCtrl.requireSignin, authCtrl.hasAuthorization, userCtrl.remove)
+
+router.param('id', userCtrl.userByID)
 
 
 export default router

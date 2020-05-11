@@ -17,6 +17,7 @@
  * Primary dependencies
  */
 import { Request, Response, NextFunction } from "express";
+import RequestMiddleware from "../interfaces/express";
 
 /**
  * Model Schema
@@ -59,7 +60,7 @@ export const signin = async (req: Request, res: Response) => {
          * doesn't match, drrthrow an error
          */
         if(!user) throw new Error(`No user exists with the email ${email}`)
-        console.log(user.schema.methods)
+
         if(!user.authenticate(password)) throw new Error("Email and Password don't match")
 
         /**
@@ -117,12 +118,11 @@ export const requireSignin = expressJwt({
  * Ensure a user has authorization, and is the logged in user before continuing
  * If not, respond with a 403 response
  */
-export const hasAuthorization = (req: Request, res: Response, next: NextFunction) => {
-    // @ts-ignore
-    const authorized = req.profile && req.auth && req.profile._id === req.auth._id;
+export const hasAuthorization = (req: RequestMiddleware, res: Response, next: NextFunction) => {
+    const authorized = req.profile && req.auth && req.profile._id.toString() === req.auth._id;
 
     if (!authorized) {
-        return res.status(403).json(handleError("You are not authorized, please login"));
+        return res.status(403).json(handleError("You are not authorized to access this information"));
     }
 
     next();

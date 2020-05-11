@@ -16,7 +16,7 @@
 /**
  * Primary dependencies
  */
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 /**
  * Model Schema
@@ -27,6 +27,7 @@ import User from "../models/user.model";
  * Helpers for sucess and error responses
  */
 import { handleSuccess, handleError } from "../helpers/responseHandler";
+import RequestMiddleware from "../interfaces/express";
 
 /**
  * Create a user in the database
@@ -68,16 +69,28 @@ export const list = async (req: Request, res: Response) => {
  * @param req
  * @param res
  */
-export const show = async (req: Request, res: Response) => {
+export const show = (req: RequestMiddleware, res: Response) => {
+  return res.status(200).json(handleSuccess(req.profile));
+};
+
+/**
+ * Retreive a user by ID from the database
+ * and append to the req.profile
+ *
+ * @param req
+ * @param res
+ */
+export const userByID = async(req: RequestMiddleware, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id).select('_id name email created');
 
-    return res.status(200).json(handleSuccess(user));
+    req.profile = user
+    next()
   } catch (err) {
     return res.status(400).json(handleError(err));
   }
-};
+}
 
 /**
  * Update a user by ID
