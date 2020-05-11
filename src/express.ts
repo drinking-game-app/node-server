@@ -29,6 +29,7 @@ import cors from "cors"
  * Import Routes
  */
 import userRoutes from './routes/user.routes'
+import authRoutes from './routes/auth.routes'
 
 /**
  * Declare express app
@@ -68,5 +69,6 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
  *
  */
 app.use("/", userRoutes);
+app.use("/", authRoutes)
 
 export default app;

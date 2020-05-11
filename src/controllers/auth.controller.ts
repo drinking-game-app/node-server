@@ -35,9 +35,8 @@ import expressJwt from "express-jwt";
 import config from "./../../config/config";
 
 /**
- * Encryption Imports
+ * Helpers for success / error responses
  */
-import crypto from "crypto";
 import { handleError, handleSuccess } from "../helpers/responseHandler";
 
 /**
@@ -53,14 +52,14 @@ export const signin = async (req: Request, res: Response) => {
         /**
          * Find a user with this email
          */
-        const user: any = await User.find({email}).select('_id name email')
+        const user: any = await User.findOne({email})
 
         /**
          * If no user is found, or if the password
          * doesn't match, drrthrow an error
          */
         if(!user) throw new Error(`No user exists with the email ${email}`)
-        // user.schema.methods.authenticate(password)
+        console.log(user.schema.methods)
         if(!user.authenticate(password)) throw new Error("Email and Password don't match")
 
         /**

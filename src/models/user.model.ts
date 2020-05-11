@@ -35,11 +35,15 @@ export interface IUserDocument extends Document {
 /**
  * User Schema Methods
  */
-export interface IUserModel extends Model<IUserDocument> {
+export interface IUser extends IUserDocument {
   authenticate(plainText: string): boolean;
   encryptPassword(password: string): string;
   makeSalt(): string;
 }
+
+// export interface IUserModel extends Model<IUser> {
+
+// }
 
 /**
  * Schema for a user
@@ -104,9 +108,6 @@ UserSchema.path('hashed_password').validate(function() {
 /**
  * Declaring methods for the User Schema
  */
-// UserSchema.method('authenticate', function(plainText: string): boolean {
-//   return this.encryptPassword(plainText) === this.hashed_password
-// })
 
 UserSchema.methods = {
   authenticate(plainText: string) {
@@ -128,6 +129,6 @@ UserSchema.methods = {
   }
 }
 
-const User = mongoose.model<IUserDocument, IUserModel>("User", UserSchema);
+const User = mongoose.model<IUser>("User", UserSchema);
 
 export default User;
