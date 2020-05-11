@@ -53,7 +53,7 @@ export const signin = async (req: Request, res: Response) => {
         /**
          * Find a user with this email
          */
-        const user = await User.find({email}).select('_id name email')
+        const user: any = await User.find({email}).select('_id name email')
 
         /**
          * If no user is found, or if the password

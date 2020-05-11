@@ -24,6 +24,7 @@ import compress from "compression"
 import helmet from "helmet"
 import cors from "cors"
 
+
 /**
  * Import Routes
  */
@@ -67,6 +68,5 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
  *
  */
 app.use("/", userRoutes);
-
 
 export default app;

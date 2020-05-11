@@ -71,7 +71,7 @@ export const list = async (req: Request, res: Response) => {
 export const show = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id);
+    const user = await User.findById(id).select('_id name email created');
 
     return res.status(200).json(handleSuccess(user));
   } catch (err) {
@@ -88,7 +88,7 @@ export const show = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const user = await User.findByIdAndUpdate(id, req.body);
+    const user = await User.findByIdAndUpdate(id, req.body, {new: true});
 
     return res.status(200).json(handleSuccess(user));
   } catch (err) {

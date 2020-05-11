@@ -18,7 +18,7 @@ import crypto from 'crypto'
 /**
  * Type declaration for User Schema Fields
  */
-interface IUserDocument extends Document {
+export interface IUserDocument extends Document {
   _id: string;
   name: string;
   created: Date;
@@ -35,7 +35,7 @@ interface IUserDocument extends Document {
 /**
  * User Schema Methods
  */
-interface IUserModel extends Model<IUserDocument> {
+export interface IUserModel extends Model<IUserDocument> {
   authenticate(plainText: string): boolean;
   encryptPassword(password: string): string;
   makeSalt(): string;
@@ -104,14 +104,14 @@ UserSchema.path('hashed_password').validate(function() {
 /**
  * Declaring methods for the User Schema
  */
-UserSchema.method('authenticate', function(plainText: string): boolean {
-  return this.encryptPassword(plainText) === this.hashed_password
-})
+// UserSchema.method('authenticate', function(plainText: string): boolean {
+//   return this.encryptPassword(plainText) === this.hashed_password
+// })
 
 UserSchema.methods = {
-  // authenticate(plainText: string) {
-  //   return this.encryptPassword(plainText) === this.hashed_password
-  // },
+  authenticate(plainText: string) {
+    return this.encryptPassword(plainText) === this.hashed_password
+  },
   encryptPassword(password: string) {
     if (!password) return ''
     try {
