@@ -19,8 +19,8 @@ import app from './express'
 import mongoose from 'mongoose'
 
 // @ts-ignore
-import sockServer from '@rossmacd/gamesock-server'
-
+// import sockServer from '@rossmacd/gamesock-server'
+import gamesock from '@rossmacd/gamesock-server'
 
 /**
  * Mongoose Connection configurations
@@ -49,8 +49,16 @@ mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${config.mongoUri}`)
 })
 
+
+
+// override auth function
+// gamesock.lobbies.onAuth((token:string)=>{
+//   return false
+// });
+
+
 // Create http server
-const server = sockServer(app)
+const server = gamesock.sockServer(app, false);
 
 
 
@@ -59,7 +67,7 @@ const server = sockServer(app)
 /**
  * Listen on the specified port, and for any errors
  */
-app.listen(config.port, () => {
+server.listen(config.port, () => {
   console.info('Server started on port %s.', config.port)
 })
 .on("error", (err: any) => {

@@ -95,10 +95,10 @@ UserSchema.path('hashed_password').validate(function() {
  * Declaring methods for the User Schema
  */
 UserSchema.methods = {
-  authenticate: function(plainText: string) {
+  authenticate(plainText: string) {
     return this.encryptPassword(plainText) === this.hashed_password
   },
-  encryptPassword: function(password: string) {
+  encryptPassword(password: string) {
     if (!password) return ''
     try {
       return crypto
@@ -109,7 +109,7 @@ UserSchema.methods = {
       return ''
     }
   },
-  makeSalt: function() {
+  makeSalt() {
     return Math.round((new Date().valueOf() * Math.random())) + ''
   }
 }
