@@ -41,6 +41,13 @@ import config from "./../../config/config";
 import { handleError, handleSuccess } from "../helpers/responseHandler";
 
 /**
+ * Google oAuth Import & Initialization
+ */
+import {OAuth2Client} from 'google-auth-library';
+
+const client = new OAuth2Client(config.google_client_id)
+
+/**
  * Handle a user signin
  *
  * @param req
@@ -127,3 +134,80 @@ export const hasAuthorization = (req: RequestMiddleware, res: Response, next: Ne
 
     next();
 };
+
+
+/**
+ * Verify the Google JWT token sent from the frontend
+ *
+ * @param {Request} req
+ * @param {Response} res
+ */
+export const loginWithGoogle = async(req: Request, res: Response) => {
+    try {
+        /**
+         * Verify the token created in the frotnend
+         * with Google, along with our client ID
+         */
+        const ticket = await client.verifyIdToken({
+            idToken: req.body.token,
+            audience: config.google_client_id,
+        });
+
+        /**
+         * Get the payload from the verified ticket
+         */
+        const payload = ticket.getPayload();
+
+        /**
+         * Create a user object from 
+         * the ticket payload
+         */
+        const user: any = {
+            name: payload.name,
+            email: payload.email,
+            oAuthToken: payload.sub,
+        }
+
+        /**
+         * Either create or update a user in our database
+         * with the email provided from the ticket payload
+         */
+        const response = await User.findOneAndUpdate(
+            {'email': user.email},
+            user,
+            {
+                new: true,
+                upsert: true
+            }
+        )
+
+        /**
+         * Sign the user's unique ID into a
+         * JSON Web Token string payload
+         */
+        const token = jwt.sign(
+            {
+              _id: response._id
+            },
+            config.jwtSecret
+        );
+
+        /**
+         * Set the token as a cookie in the response
+         */
+        res.cookie("t", token, {
+            expires: new Date(Date.now() + parseInt(config.SESSION_TTL, 10)),
+            httpOnly: false
+        });
+
+        /**
+         * Return a 200 response with the token and user
+         */
+        return res.status(200).json(
+            handleSuccess({token, user: {name: response.name, email: response.email, _id: response._id}})
+        );
+
+    } catch(err) {
+        return res.status(401).json(handleError(err))
+    }
+}

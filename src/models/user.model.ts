@@ -30,6 +30,7 @@ export interface IUserDocument extends Document {
   resetPasswordExpires: Date;
   confirmEmailToken: string;
   confirmEmailTokenExpires: string;
+  oAuthToken: string;
 }
 
 /**
@@ -40,10 +41,6 @@ export interface IUser extends IUserDocument {
   encryptPassword(password: string): string;
   makeSalt(): string;
 }
-
-// export interface IUserModel extends Model<IUser> {
-
-// }
 
 /**
  * Schema for a user
@@ -75,6 +72,9 @@ const UserSchema: Schema = new Schema({
   },
   confirmEmailTokenExpires: {
     type: Date
+  },
+  oAuthToken: {
+    type: String
   }
 });
 
