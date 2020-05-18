@@ -159,7 +159,7 @@ export const loginWithGoogle = async(req: Request, res: Response) => {
         const payload = ticket.getPayload();
 
         /**
-         * Create a user object from 
+         * Create a user object from
          * the ticket payload
          */
         const user: any = {
