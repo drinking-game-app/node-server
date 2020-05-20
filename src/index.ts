@@ -25,7 +25,7 @@ import { createClient as createRedisClient } from 'redis';
 
 // @ts-ignore
 // import sockServer from '@rossmacd/gamesock-server'
-import {sockServer,onAuth,onLobbyCreate,onLobbyJoin,Lobby} from '@rossmacd/gamesock-server'
+import {sockServer,onAuth,onLobbyCreate,onLobbyJoin,Lobby,Player,onPlayerReady} from '@rossmacd/gamesock-server'
 
 /**
  * Mongoose Connection configurations
@@ -86,26 +86,41 @@ app.get('/stats',(req,res)=>{
   return res.status(200).send(html)}
 )
 
-
+// Authorize function
 onAuth((token: string) => {
   return true;
 });
+
 // Push lobby into local array
 onLobbyCreate((newLobby)=>{
   myLobbies.push(newLobby);
   return true
 })
+
 // Push player into their lobby
 onLobbyJoin((lobbyName, player)=>{
-const plIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
-myLobbies[plIndex].players.push(player);
-return true
+  const plIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+  // don't join lobby if it dosnt exist
+  if(plIndex===-1) return false
+  // Add player to lobby
+  myLobbies[plIndex].players.push(player);
+  return true
 })
+
+// Set player Status to ready
+onPlayerReady((lobbyName:string, playerId:string)=>{
+  // Get the lobby
+  const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+  // Get the player
+  const pIndex = myLobbies[lIndex].players.findIndex((player:Player)=>player.id===playerId);
+  // Set the status to ready server-side
+  myLobbies[lIndex].players[pIndex].ready=true;
+  // Broadcast the playerNumber back to the others
+  return pIndex
+})
+
 // Create http/s server
 const server = sockServer(app, false);
-
-
-
 
 
 /**
