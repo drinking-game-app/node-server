@@ -15,8 +15,8 @@
 
 
 import { Application } from "express";
-import GameSock from "@rossmacd/gamesock-server";
-import { ILobbies } from "../interfaces/gameController";
+// import GameSock from "@rossmacd/gamesock-server";
+// import { ILobbies } from "../interfaces/gameController";
 
 const lobbies: ILobbies = [];
 
@@ -28,71 +28,71 @@ const lobbies: ILobbies = [];
  * @param {Application} app
  * @param {boolean} https
  */
-export const gameController = (app: Application, https: boolean) => {
-  /**
-   * Check if the user is authenticated
-   * before allowing them to continue
-   *
-   * Takes in a JWT token
-   *
-   * @param {string} token
-   *
-   * @returns {boolean}
-   */
-  GameSock.onAuth((token: string) => {
-    /**
-     * @todo check JWT token and confirm auth
-     */
+// export const gameController = (app: Application, https: boolean) => {
+//   /**
+//    * Check if the user is authenticated
+//    * before allowing them to continue
+//    *
+//    * Takes in a JWT token
+//    *
+//    * @param {string} token
+//    *
+//    * @returns {boolean}
+//    */
+//   GameSock.onAuth((token: string) => {
+//     /**
+//      * @todo check JWT token and confirm auth
+//      */
 
-    return true;
-  });
+//     return true;
+//   });
 
-  /**
-   * On creating a lobby
-   *
-   * @param {ILobby} lobby
-   */
-  GameSock.onLobbyCreate((lobby) => {
-    /**
-     * @todo check if the lobby doesn't already exist
-     */
+//   /**
+//    * On creating a lobby
+//    *
+//    * @param {ILobby} lobby
+//    */
+//   GameSock.onLobbyCreate((lobby) => {
+//     /**
+//      * @todo check if the lobby doesn't already exist
+//      */
 
-    return true;
-  });
+//     return true;
+//   });
 
-  /**
-   * On joining a lobby
-   *
-   * @param {string} lobbyName
-   * @param {Player} player
-   */
-  GameSock.onLobbyJoin((lobbyName, player) => {
-    /**
-     * @todo check if the lobby allows players
-     */
+//   /**
+//    * On joining a lobby
+//    *
+//    * @param {string} lobbyName
+//    * @param {Player} player
+//    */
+//   GameSock.onLobbyJoin((lobbyName, player) => {
+//     /**
+//      * @todo check if the lobby allows players
+//      */
 
-    return true;
-  });
+//     return true;
+//   });
 
-  /**
-   * When a player is ready within a lobby
-   *
-   * @param {string} lobbyName
-   * @param {string} playerId
-   */
-  GameSock.onPlayerReady((lobbyName, playerId) => {
-    /**
-     * @todo if all players are ready start the game
-     */
+//   /**
+//    * When a player is ready within a lobby
+//    *
+//    * @param {string} lobbyName
+//    * @param {string} playerId
+//    */
+//   GameSock.onPlayerReady((lobbyName, playerId) => {
+//     /**
+//      * @todo if all players are ready start the game
+//      */
 
-    /**
-     * Returning 0 is the host
-     */
-    return 0;
-  });
+//     /**
+//      * Returning 0 is the host
+//      */
+//     return 0;
+//   });
 
-  /**
-   * Return the socket server to express
-   */
-  return GameSock.sockServer(app, https);
-};
+//   /**
+//    * Return the socket server to express
+//    */
+//   return GameSock.sockServer(app, https);
+// };
