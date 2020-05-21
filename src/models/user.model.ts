@@ -31,6 +31,7 @@ export interface IUserDocument extends Document {
   confirmEmailToken: string;
   confirmEmailTokenExpires: string;
   oAuthToken: string;
+  accessToken: string;
 }
 
 /**
@@ -74,6 +75,9 @@ const UserSchema: Schema = new Schema({
     type: Date
   },
   oAuthToken: {
+    type: String
+  },
+  accessToken: {
     type: String
   }
 });

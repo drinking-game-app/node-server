@@ -28,13 +28,13 @@ router.route(`${prefix}/signin`)
 /**
  * @method GET - Signs out a user
  */
-router.route(`${prefix}/signout`)
+router.route(`${prefix}/signout/:accessToken?`)
     .get(authCtrl.requireSignin, authCtrl.signout)
 
 /**
  * @method POST - Verify a login with Google
  */
-router.route(`${prefix}/signin/google`)
+router.route(`${prefix}/signin/google/:type`)
     .post(authCtrl.loginWithGoogle)
 
 export default router

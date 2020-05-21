@@ -23,7 +23,9 @@ const config = {
     CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || "http://localhost:3000",
     jwtSecret: process.env.JWT_SECRET,
     SESSION_TTL: process.env.SESSION_TTL,
-    google_client_id: process.env.GOOGLE_CLIENT_ID
+    google_client_id: process.env.GOOGLE_CLIENT_ID,
+    ios_google_client_id: process.env.IOS_GOOGLE_CLIENT_ID,
+    android_google_client_id: process.env.ANDROID_GOOGLE_CLIENT_ID
 }
 
 export default config

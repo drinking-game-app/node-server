@@ -45,8 +45,6 @@ import { handleError, handleSuccess } from "../helpers/responseHandler";
  */
 import {OAuth2Client} from 'google-auth-library';
 
-const client = new OAuth2Client(config.google_client_id)
-
 /**
  * Handle a user signin
  *
@@ -108,10 +106,41 @@ export const signin = async (req: Request, res: Response) => {
  * @param req
  * @param res
  */
-export const signout = (req: Request, res: Response) => {
+export const signout = async(req: Request, res: Response) => {
+    const accessToken = req.params.accessToken
+
+    if(accessToken) {
+        console.log('running signout!', req.params.accessToken)
+        return signoutwithGoogle(accessToken, res)
+    }
+
+
     res.clearCookie("t");
     return res.status(200).json(handleSuccess("Signed out"))
 };
+
+/**
+ * Clears the Google access token from the DB
+ *
+ * @param {string} accessToken
+ * @param {Response} res
+ */
+const signoutwithGoogle = async(accessToken: string, res: Response) => {
+        try {
+            const user = await User.findOneAndUpdate(
+                {'accessToken': accessToken},
+                {$set: {'accessToken': null}},
+                {new: true}
+            )
+
+            res.clearCookie("t");
+
+            return res.status(200).json(handleSuccess(user))
+        } catch(err) {
+            console.log('error signing out with google: ', err)
+            return res.status(200).json(handleError(err))
+        }
+}
 
 /**
  * Ensure a user is signed in before continuing
@@ -135,6 +164,23 @@ export const hasAuthorization = (req: RequestMiddleware, res: Response, next: Ne
     next();
 };
 
+/**
+ * Whatever device the login with google
+ * request came from, return the associated
+ * google oAuth client id
+ *
+ * @param {string} type
+ */
+const getAudienceFromType = (type: string) => {
+    switch(type) {
+        case "ios":
+            return config.ios_google_client_id
+        case "android":
+            return config.android_google_client_id
+        default:
+            return config.google_client_id
+    }
+}
 
 /**
  * Verify the Google JWT token sent from the frontend
@@ -143,6 +189,24 @@ export const hasAuthorization = (req: RequestMiddleware, res: Response, next: Ne
  * @param {Response} res
  */
 export const loginWithGoogle = async(req: Request, res: Response) => {
+    const type = req.params.type
+
+    /**
+     * Get the config variable depending on the request type
+     *
+     * -ios
+     * -android
+     * -web
+     */
+    const audience = getAudienceFromType(type)
+
+    /**
+     * Initialize the oAuth client with the config variable
+     */
+    const client = new OAuth2Client(audience)
+
+
+    console.log('type!', type, 'audience!', audience)
     try {
         /**
          * Verify the token created in the frotnend
@@ -150,13 +214,17 @@ export const loginWithGoogle = async(req: Request, res: Response) => {
          */
         const ticket = await client.verifyIdToken({
             idToken: req.body.token,
-            audience: config.google_client_id,
+            audience
         });
+
+        console.log('ticket!', ticket)
 
         /**
          * Get the payload from the verified ticket
          */
         const payload = ticket.getPayload();
+
+        console.log('payload!', payload)
 
         /**
          * Create a user object from
@@ -167,6 +235,12 @@ export const loginWithGoogle = async(req: Request, res: Response) => {
             email: payload.email,
             oAuthToken: payload.sub,
         }
+
+        /**
+         * For iOS & Android only
+         * If the user has a access token, store it in the DB
+         */
+        if(req.body.accessToken) user.accessToken = req.body.accessToken
 
         /**
          * Either create or update a user in our database
@@ -201,13 +275,30 @@ export const loginWithGoogle = async(req: Request, res: Response) => {
         });
 
         /**
+         * Create a response object to be sent
+         * back to the frontend
+         */
+        const responseUser: any = {
+            name: response.name,
+            email: response.email,
+            _id: response._id
+        }
+
+        /**
+         * If the user has an access token
+         * append it onto the responseUser
+         */
+        if(response.accessToken) responseUser.accessToken = response.accessToken
+
+        /**
          * Return a 200 response with the token and user
          */
         return res.status(200).json(
-            handleSuccess({token, user: {name: response.name, email: response.email, _id: response._id}})
+            handleSuccess({token, user: responseUser})
         );
 
     } catch(err) {
+        console.log('error autenticating!', err)
         return res.status(401).json(handleError(err))
     }
 }
