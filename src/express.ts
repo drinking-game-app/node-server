@@ -30,6 +30,7 @@ import cors from "cors"
  */
 import userRoutes from './routes/user.routes'
 import authRoutes from './routes/auth.routes'
+import { gameController } from "./controllers/game.controller";
 
 /**
  * Declare express app
@@ -71,4 +72,9 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
 app.use("/", userRoutes);
 app.use("/", authRoutes)
 
-export default app;
+/**
+ * Mount Game Controller
+ */
+const server = gameController(app, false);
+
+export default server;
