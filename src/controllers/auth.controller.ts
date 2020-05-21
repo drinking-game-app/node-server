@@ -109,11 +109,10 @@ export const signin = async (req: Request, res: Response) => {
 export const signout = async(req: Request, res: Response) => {
     const accessToken = req.params.accessToken
 
-    if(accessToken) {
-        console.log('running signout!', req.params.accessToken)
-        return signoutwithGoogle(accessToken, res)
-    }
-
+    /**
+     * If there is an access token, run the signout with google function
+     */
+    if(accessToken) return signoutwithGoogle(accessToken, res)
 
     res.clearCookie("t");
     return res.status(200).json(handleSuccess("Signed out"))
@@ -189,6 +188,9 @@ const getAudienceFromType = (type: string) => {
  * @param {Response} res
  */
 export const loginWithGoogle = async(req: Request, res: Response) => {
+    /**
+     * Get the device type from the Request parameters
+     */
     const type = req.params.type
 
     /**
@@ -205,8 +207,6 @@ export const loginWithGoogle = async(req: Request, res: Response) => {
      */
     const client = new OAuth2Client(audience)
 
-
-    console.log('type!', type, 'audience!', audience)
     try {
         /**
          * Verify the token created in the frotnend
@@ -217,14 +217,10 @@ export const loginWithGoogle = async(req: Request, res: Response) => {
             audience
         });
 
-        console.log('ticket!', ticket)
-
         /**
          * Get the payload from the verified ticket
          */
         const payload = ticket.getPayload();
-
-        console.log('payload!', payload)
 
         /**
          * Create a user object from
