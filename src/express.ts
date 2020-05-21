@@ -75,6 +75,6 @@ app.use("/", authRoutes)
 /**
  * Mount Game Controller
  */
-const server = gameController(app, false);
+// const server = gameController(app, false);
 
-export default server;
+export default app;
