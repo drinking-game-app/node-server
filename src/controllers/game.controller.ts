@@ -14,11 +14,11 @@
 
 
 
-import { Application } from "express";
+// import { Application } from "express";
 // import GameSock from "@rossmacd/gamesock-server";
 // import { ILobbies } from "../interfaces/gameController";
 
-const lobbies: ILobbies = [];
+// const lobbies: ILobbies = [];
 
 /**
  * Main Game Controller

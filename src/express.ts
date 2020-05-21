@@ -30,7 +30,7 @@ import cors from "cors"
  */
 import userRoutes from './routes/user.routes'
 import authRoutes from './routes/auth.routes'
-import { gameController } from "./controllers/game.controller";
+// import { gameController } from "./controllers/game.controller";
 
 /**
  * Declare express app
