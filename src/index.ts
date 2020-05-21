@@ -25,7 +25,15 @@ import { createClient as createRedisClient } from 'redis';
 
 // @ts-ignore
 // import sockServer from '@rossmacd/gamesock-server'
-import {sockServer,onAuth,onLobbyCreate,onLobbyJoin,Lobby,Player,onPlayerReady} from '@rossmacd/gamesock-server'
+import {
+  sockServer,
+  onAuth,
+  onLobbyCreate,
+  onLobbyJoin,
+  onPlayerReady,
+  Player,
+  Lobby
+} from '@rossmacd/gamesock-server'
 
 /**
  * Mongoose Connection configurations
@@ -101,10 +109,10 @@ onLobbyCreate((newLobby)=>{
 onLobbyJoin((lobbyName, player)=>{
   const plIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
   // don't join lobby if it dosnt exist
-  if(plIndex===-1) return false
+  if(plIndex===-1) return []
   // Add player to lobby
   myLobbies[plIndex].players.push(player);
-  return true
+  return myLobbies[plIndex].players
 })
 
 // Set player Status to ready
