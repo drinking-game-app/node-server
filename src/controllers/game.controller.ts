@@ -12,13 +12,10 @@
  * Copyright 2020 - WebSpace
  */
 
-
-
 import { Application } from "express";
-// @ts-ignore
-import GameSock, {Lobby, Player} from "@rossmacd/gamesock-server";
+import GameSock, { Lobby, Player } from "@rossmacd/gamesock-server";
 
-const lobbies: Lobby[] = []
+const lobbies: Lobby[] = [];
 
 /**
  * Main Game Controller
@@ -56,15 +53,18 @@ export const gameController = (app: Application, https: boolean) => {
     /**
      * @todo check if the lobby doesn't already exist
      */
-    if(lobbies.filter((dat) => dat.name === lobby.name).length > 0) return false
-    console.log('lobby created',lobby)
+    if (lobbies.filter((dat) => dat.name === lobby.name).length > 0)
+      return false;
+    console.log("lobby created", lobby);
 
-    lobbies.push(lobby)
+    lobbies.push(lobby);
     return true;
   });
 
   /**
    * On joining a lobby
+   *
+   * @todo return either an empty array or array of players
    *
    * @param {string} lobbyName
    * @param {Player} player
@@ -73,18 +73,18 @@ export const gameController = (app: Application, https: boolean) => {
     /**
      * @todo check if the lobby allows players
      */
-    console.log('checking lobbies', lobbies)
-    lobbies.map((dat) => {
-      if(dat.name === lobbyName) {
-        if(dat.players.filter((subDat: Player) => subDat.name === player.name).length > 0) return false
-
-        dat.players.push(player)
-        console.log('lobby joined',lobbyName, player)
-        return true
+    let returnLobbies: Player[] = [];
+    lobbies.forEach((lobby) => {
+      const playerExists = lobby.players.find(
+        (lobbyPlayer: Player) => lobbyPlayer.name === player.name
+      );
+      if (lobby.name === lobbyName && !playerExists) {
+        lobby.players.push(player);
+        returnLobbies = lobby.players;
       }
-    })
+    });
 
-    return false
+    return returnLobbies;
   });
 
   /**
@@ -97,11 +97,20 @@ export const gameController = (app: Application, https: boolean) => {
     /**
      * @todo if all players are ready start the game
      */
-    console.log('player ready',lobbyName, playerId)
+    console.log("player ready", lobbyName, playerId);
     /**
      * Returning 0 is the host
      */
     return 0;
+  });
+
+  // Update a single player
+  GameSock.onUpdateSinglePlayer((lobbyName: string, player: Player) => {
+    console.log("Updating");
+    // Get the lobby
+    // const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+    player.name = "Ultan";
+    return player;
   });
 
   /**
