@@ -15,6 +15,7 @@
 
 
 import { Application } from "express";
+// @ts-ignore
 import GameSock, {Lobby, Player} from "@rossmacd/gamesock-server";
 
 const lobbies: Lobby[] = []
@@ -51,7 +52,7 @@ export const gameController = (app: Application, https: boolean) => {
    *
    * @param {ILobby} lobby
    */
-  GameSock.onLobbyCreate((lobby) => {
+  GameSock.onLobbyCreate((lobby: Lobby) => {
     /**
      * @todo check if the lobby doesn't already exist
      */
@@ -68,7 +69,7 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {string} lobbyName
    * @param {Player} player
    */
-  GameSock.onLobbyJoin((lobbyName, player) => {
+  GameSock.onLobbyJoin((lobbyName: string, player: Player) => {
     /**
      * @todo check if the lobby allows players
      */
@@ -92,7 +93,7 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {string} lobbyName
    * @param {string} playerId
    */
-  GameSock.onPlayerReady((lobbyName, playerId) => {
+  GameSock.onPlayerReady((lobbyName: string, playerId: string) => {
     /**
      * @todo if all players are ready start the game
      */

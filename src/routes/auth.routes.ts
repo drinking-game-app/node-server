@@ -31,5 +31,10 @@ router.route(`${prefix}/signin`)
 router.route(`${prefix}/signout`)
     .get(authCtrl.requireSignin, authCtrl.signout)
 
+/**
+ * @method POST - Verify a login with Google
+ */
+router.route(`${prefix}/signin/:provider/:type`)
+    .post(authCtrl.loginWithThirdParty)
 
 export default router
