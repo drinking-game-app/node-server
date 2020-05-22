@@ -31,6 +31,7 @@ import {
   onLobbyCreate,
   onLobbyJoin,
   onPlayerReady,
+  onUpdateSinglePlayer,
   Player,
   Lobby
 } from '@rossmacd/gamesock-server'
@@ -125,6 +126,15 @@ onPlayerReady((lobbyName:string, playerId:string)=>{
   myLobbies[lIndex].players[pIndex].ready=true;
   // Broadcast the playerNumber back to the others
   return pIndex
+})
+
+// Update a single player
+onUpdateSinglePlayer((lobbyName:string, player:Player)=>{
+  console.log('Updating')
+  // Get the lobby
+  // const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+  player.name = 'Ultan';
+  return player;
 })
 
 // Create http/s server
