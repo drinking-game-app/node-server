@@ -17,7 +17,11 @@
 /**
  * Interface for a user within a lobby
  */
+<<<<<<< HEAD
 interface ILobbyUser {
+=======
+interface ILobbyPlayer {
+>>>>>>> development
     name: string;
     points: 0;
 }
@@ -25,16 +29,28 @@ interface ILobbyUser {
 /**
  * Interface for a single lobby
  */
+<<<<<<< HEAD
 interface ILobby {
     name: string;
     isPlaying: boolean;
     round: 0;
     users: ILobbyUser;
+=======
+export interface ILobby {
+    name: string;
+    isPlaying: boolean;
+    round: 0;
+    players: ILobbyPlayer;
+>>>>>>> development
 }
 
 /**
  * Interface for the Lobbies array of objects
  */
+<<<<<<< HEAD
 export interface ILobbies {
     [index: number]: ILobby
 }
+=======
+// export interface ILobbies: ILobby[]
+>>>>>>> development

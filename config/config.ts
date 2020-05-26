@@ -25,7 +25,15 @@ const config = {
     SESSION_TTL: process.env.SESSION_TTL,
     google_client_id: process.env.GOOGLE_CLIENT_ID,
     ios_google_client_id: process.env.IOS_GOOGLE_CLIENT_ID,
+<<<<<<< HEAD
     android_google_client_id: process.env.ANDROID_GOOGLE_CLIENT_ID
+=======
+    android_google_client_id: process.env.ANDROID_GOOGLE_CLIENT_ID,
+    private_key_file_path:  process.env.PRIVATE_KEY_FILE_PATH,
+    apple_key_id: process.env.APPLE_KEY_ID,
+    apple_team_id: process.env.APPLE_TEAM_ID,
+    apple_bundle_id: process.env.APPLE_BUNDLE_ID
+>>>>>>> development
 }
 
 export default config

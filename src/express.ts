@@ -12,25 +12,29 @@
  * Copyright 2020 - WebSpace
  */
 
-
 /**
  * Import primary dependencies
  */
 import express, { Application, Request, Response } from "express";
 import path from "path";
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser"
-import compress from "compression"
-import helmet from "helmet"
-import cors from "cors"
-
+import cookieParser from "cookie-parser";
+import compress from "compression";
+import helmet from "helmet";
+import cors from "cors";
+import { gameController } from "./controllers/game.controller";
 
 /**
  * Import Routes
  */
+<<<<<<< HEAD
 import userRoutes from './routes/user.routes'
 import authRoutes from './routes/auth.routes'
 // import { gameController } from "./controllers/game.controller";
+=======
+import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
+>>>>>>> development
 
 /**
  * Declare express app
@@ -70,11 +74,15 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
  *
  */
 app.use("/", userRoutes);
-app.use("/", authRoutes)
+app.use("/", authRoutes);
 
+<<<<<<< HEAD
 /**
  * Mount Game Controller
  */
 // const server = gameController(app, false);
 
 export default app;
+=======
+export default gameController(app, false);
+>>>>>>> development
