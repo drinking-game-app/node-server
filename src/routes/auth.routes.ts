@@ -34,12 +34,7 @@ router.route(`${prefix}/signout/:accessToken?`)
 /**
  * @method POST - Verify a login with Google
  */
-<<<<<<< HEAD
-router.route(`${prefix}/signin/google/:type`)
-    .post(authCtrl.loginWithGoogle)
-=======
 router.route(`${prefix}/signin/:provider/:type`)
     .post(authCtrl.loginWithThirdParty)
->>>>>>> development
 
 export default router

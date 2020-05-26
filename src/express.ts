@@ -27,14 +27,8 @@ import { gameController } from "./controllers/game.controller";
 /**
  * Import Routes
  */
-<<<<<<< HEAD
-import userRoutes from './routes/user.routes'
-import authRoutes from './routes/auth.routes'
-// import { gameController } from "./controllers/game.controller";
-=======
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
->>>>>>> development
 
 /**
  * Declare express app
@@ -76,13 +70,4 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
 app.use("/", userRoutes);
 app.use("/", authRoutes);
 
-<<<<<<< HEAD
-/**
- * Mount Game Controller
- */
-// const server = gameController(app, false);
-
-export default app;
-=======
 export default gameController(app, false);
->>>>>>> development

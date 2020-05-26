@@ -12,20 +12,10 @@
  * Copyright 2020 - WebSpace
  */
 
-<<<<<<< HEAD
-
-
-// import { Application } from "express";
-// import GameSock from "@rossmacd/gamesock-server";
-// import { ILobbies } from "../interfaces/gameController";
-
-// const lobbies: ILobbies = [];
-=======
 import { Application } from "express";
 import GameSock, { Lobby, Player } from "@rossmacd/gamesock-server";
 
 const lobbies: Lobby[] = [];
->>>>>>> development
 
 /**
  * Main Game Controller
@@ -35,76 +25,6 @@ const lobbies: Lobby[] = [];
  * @param {Application} app
  * @param {boolean} https
  */
-<<<<<<< HEAD
-// export const gameController = (app: Application, https: boolean) => {
-//   /**
-//    * Check if the user is authenticated
-//    * before allowing them to continue
-//    *
-//    * Takes in a JWT token
-//    *
-//    * @param {string} token
-//    *
-//    * @returns {boolean}
-//    */
-//   GameSock.onAuth((token: string) => {
-//     /**
-//      * @todo check JWT token and confirm auth
-//      */
-
-//     return true;
-//   });
-
-//   /**
-//    * On creating a lobby
-//    *
-//    * @param {ILobby} lobby
-//    */
-//   GameSock.onLobbyCreate((lobby) => {
-//     /**
-//      * @todo check if the lobby doesn't already exist
-//      */
-
-//     return true;
-//   });
-
-//   /**
-//    * On joining a lobby
-//    *
-//    * @param {string} lobbyName
-//    * @param {Player} player
-//    */
-//   GameSock.onLobbyJoin((lobbyName, player) => {
-//     /**
-//      * @todo check if the lobby allows players
-//      */
-
-//     return true;
-//   });
-
-//   /**
-//    * When a player is ready within a lobby
-//    *
-//    * @param {string} lobbyName
-//    * @param {string} playerId
-//    */
-//   GameSock.onPlayerReady((lobbyName, playerId) => {
-//     /**
-//      * @todo if all players are ready start the game
-//      */
-
-//     /**
-//      * Returning 0 is the host
-//      */
-//     return 0;
-//   });
-
-//   /**
-//    * Return the socket server to express
-//    */
-//   return GameSock.sockServer(app, https);
-// };
-=======
 export const gameController = (app: Application, https: boolean) => {
   /**
    * Check if the user is authenticated
@@ -198,4 +118,3 @@ export const gameController = (app: Application, https: boolean) => {
    */
   return GameSock.sockServer(app, https);
 };
->>>>>>> development
