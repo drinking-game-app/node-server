@@ -32,9 +32,9 @@ import { OAuth2Client } from "google-auth-library";
 const getAudienceFromType = (type: string) => {
     switch (type) {
       case "ios":
-        return config.ios_google_client_id;
+        return config.env == 'development' ? config.dev_ios_google_client_id : config.prod_ios_google_client_id;
       case "android":
-        return config.android_google_client_id;
+        return config.dev_android_google_client_id;
       default:
         return config.google_client_id;
     }

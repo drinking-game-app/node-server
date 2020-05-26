@@ -45,7 +45,6 @@ import { handleError, handleSuccess } from "../helpers/responseHandler";
 import { loginWithGoogle } from "../helpers/validateGoogleLogin";
 import { loginWithApple } from "../helpers/validateAppleLogin";
 
-
 /**
  * Handle a user signin
  *
@@ -174,7 +173,6 @@ export const hasAuthorization = (
   next();
 };
 
-
 /**
  * Verifies a login with a third party
  *
@@ -187,23 +185,22 @@ export const hasAuthorization = (
  * @param {Response} res
  */
 export const loginWithThirdParty = async (req: Request, res: Response) => {
-    const {provider, type} = req.params;
-    let user: any
-  console.log('provider!', provider, type)
+  const { provider, type } = req.params;
+  let user: any;
+  console.log("provider!", provider, type);
   try {
-
-    if(provider === "google") user = await loginWithGoogle(type, req.body.token, req.body.accessToken)
-    else user = await loginWithApple(type, req.body.token)
+    if (provider === "google")
+      user = await loginWithGoogle(type, req.body.token, req.body.accessToken);
+    else user = await loginWithApple(type, req.body.token);
 
     /**
      * Either create or update a user in our database
      * with the email provided from the ticket payload
      */
-    const response = await User.findOneAndUpdate(
-        { email: user.email },
-        user,
-        {new: true, upsert: true}
-    );
+    const response = await User.findOneAndUpdate({ email: user.email }, user, {
+      new: true,
+      upsert: true,
+    });
 
     /**
      * Sign the user's unique ID into a
