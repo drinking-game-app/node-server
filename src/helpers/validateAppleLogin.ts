@@ -57,6 +57,12 @@ export const loginWithApple = (type: string, token: string) => {
       /**
        * Build the url with all the appropiate information
        */
+      const requestBody: any = {
+        grant_type: 'authorization_code',
+        code: token,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }
       const urlBody = `code=${token}&client_secret=${clientSecret}&client_id=${clientId}&grant_type=authorization_code`;
         console.log('url!', urlBody)
       /**
@@ -65,12 +71,14 @@ export const loginWithApple = (type: string, token: string) => {
        */
       const res: any = await fetch(`https://appleid.apple.com/auth/token`, {
         method: "POST",
+        // @ts-ignore
+        // data: querystring.stringify(requestBody),
         body: urlBody,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-
+      // if(res.body.error)
       console.log('apple response!', res)
 
       /**

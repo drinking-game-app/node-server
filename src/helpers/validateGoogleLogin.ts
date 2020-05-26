@@ -22,7 +22,6 @@ import config from "./../../config/config";
  */
 import { OAuth2Client } from "google-auth-library";
 
-
 /**
  * Whatever device the login with google
  * request came from, return the associated
