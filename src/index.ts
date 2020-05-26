@@ -33,6 +33,8 @@ import {
   onPlayerReady,
   onUpdateSinglePlayer,
   onGetPlayers,
+  onStartGame,
+  throwToRoom,
   Player,
   Lobby
 } from '@rossmacd/gamesock-server'
@@ -144,6 +146,29 @@ onGetPlayers((lobbyName:string)=>{
   const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
   // Return player list
   return myLobbies[lIndex].players;
+})
+
+// Start the game
+onStartGame((lobbyName:string,socketId:string)=>{
+  // Get the lobby
+  const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+  // Check if we can start game
+  if(myLobbies[lIndex].players.length>2||socketId===myLobbies[lIndex].players[0].id){
+      const gameOptions={
+        rounds:3,
+      }
+    return {
+      ok:true,
+      gameSettings:gameOptions
+    }
+  } else {
+    throwToRoom(lobbyName,"Not enough players to start game!😲")
+    console.log("Not enough players!");
+    return {
+      ok:false,
+      gameSettings:null
+    }
+  }
 })
 
 // Create http/s server
