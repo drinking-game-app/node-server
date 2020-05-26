@@ -12,12 +12,10 @@
  * Copyright 2020 - WebSpace
  */
 
-
-
-import config from '../config/config'
-import app from './express'
-import mongoose from 'mongoose'
-import Session from 'express-session'
+import config from '../config/config';
+import app from './express';
+import mongoose from 'mongoose';
+import Session from 'express-session';
 
 // Redis Database
 import { createClient as createRedisClient } from 'redis';
@@ -25,19 +23,7 @@ import { createClient as createRedisClient } from 'redis';
 
 // @ts-ignore
 // import sockServer from '@rossmacd/gamesock-server'
-import {
-  sockServer,
-  onAuth,
-  onLobbyCreate,
-  onLobbyJoin,
-  onPlayerReady,
-  onUpdateSinglePlayer,
-  onGetPlayers,
-  onStartGame,
-  throwToRoom,
-  Player,
-  Lobby
-} from '@rossmacd/gamesock-server'
+import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, throwToRoom, Player, Lobby } from '@rossmacd/gamesock-server';
 
 /**
  * Mongoose Connection configurations
@@ -46,26 +32,25 @@ const options = {
   useCreateIndex: true,
   useNewUrlParser: true,
   useFindAndModify: false,
-  useUnifiedTopology: true
-}
+  useUnifiedTopology: true,
+};
 
 /**
  * Creates a global mongoose promise
  */
-mongoose.Promise = global.Promise
+mongoose.Promise = global.Promise;
 
 /**
  * Connect using the config mongoURI and options
  */
-mongoose.connect(config.mongoUri, options)
+mongoose.connect(config.mongoUri, options);
 
 /**
  * Listen for an error
  */
 mongoose.connection.on('error', () => {
-  throw new Error(`unable to connect to database: ${config.mongoUri}`)
-})
-
+  throw new Error(`unable to connect to database: ${config.mongoUri}`);
+});
 
 // // Configuration about your Redis session data structure.
 // const redisClient = createRedisClient();
@@ -90,13 +75,13 @@ mongoose.connection.on('error', () => {
 //   console.log(token);
 //   return true
 // });
-const myLobbies:Lobby[]=[];
+const myLobbies: Lobby[] = [];
 
-app.get('/stats',(req,res)=>{
-  let html=`<h1>Lobbies</h1>`
-  myLobbies.forEach((lobby,index)=>html=html+`<h5>Lobby ${index}</h5><p>${ JSON.stringify(lobby)}</p>`)
-  return res.status(200).send(html)}
-)
+app.get('/stats', (req, res) => {
+  let html = `<h1>Lobbies</h1>`;
+  myLobbies.forEach((lobby, index) => (html = html + `<h5>Lobby ${index}</h5><p>${JSON.stringify(lobby)}</p>`));
+  return res.status(200).send(html);
+});
 
 // Authorize function
 onAuth((token: string) => {
@@ -104,72 +89,74 @@ onAuth((token: string) => {
 });
 
 // Push lobby into local array
-onLobbyCreate((newLobby)=>{
+onLobbyCreate((newLobby) => {
   myLobbies.push(newLobby);
-  return true
-})
+  return true;
+});
 
 // Push player into their lobby
-onLobbyJoin((lobbyName, player)=>{
-  const plIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+onLobbyJoin((lobbyName, player) => {
+  const plIndex = myLobbies.findIndex((lobby) => lobby.name === lobbyName);
   // don't join lobby if it dosnt exist
-  if(plIndex===-1) return []
+  if (plIndex === -1) return [];
   // Add player to lobby
   myLobbies[plIndex].players.push(player);
-  return myLobbies[plIndex].players
-})
+  return myLobbies[plIndex].players;
+});
 
 // Set player Status to ready
-onPlayerReady((lobbyName:string, playerId:string)=>{
-  // Get the lobby
-  const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
-  // Get the player
-  const pIndex = myLobbies[lIndex].players.findIndex((player:Player)=>player.id===playerId);
-  // Set the status to ready server-side
-  myLobbies[lIndex].players[pIndex].ready=true;
-  // Broadcast the playerNumber back to the others
-  return pIndex
-})
+// onPlayerReady((lobbyName:string, playerId:string)=>{
+//   // Get the lobby
+//   const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+//   // Get the player
+//   const pIndex = myLobbies[lIndex].players.findIndex((player:Player)=>player.id===playerId);
+//   // Set the status to ready server-side
+//   myLobbies[lIndex].players[pIndex].ready=true;
+//   // Broadcast the playerNumber back to the others
+//   return pIndex
+// })
 
 // Update a single player
-onUpdateSinglePlayer((lobbyName:string, player:Player)=>{
-  console.log('Updating')
+onUpdateSinglePlayer((lobbyName: string, newPlayer: Player) => {
+  console.log('Updating');
   // Get the lobby
-  // const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
-  player.name = 'Ultan';
-  return player;
-})
+  const lIndex = myLobbies.findIndex((lobby) => lobby.name === lobbyName);
+  const pIndex = myLobbies[lIndex].players.findIndex((player: Player) => player.id === newPlayer.id);
+  newPlayer = { ...newPlayer, name: 'Ultan', score: 0 };
+  myLobbies[lIndex].players[pIndex] = newPlayer;
+  return newPlayer;
+});
 
 // Get player list
-onGetPlayers((lobbyName:string)=>{
+onGetPlayers((lobbyName: string) => {
   // Get the lobby
-  const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+  const lIndex = myLobbies.findIndex((lobby) => lobby.name === lobbyName);
   // Return player list
   return myLobbies[lIndex].players;
-})
+});
 
 // Start the game
-onStartGame((lobbyName:string,socketId:string)=>{
+onStartGame((lobbyName: string, socketId: string) => {
   // Get the lobby
-  const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
+  const lIndex = myLobbies.findIndex((lobby) => lobby.name === lobbyName);
   // Check if we can start game
-  if(myLobbies[lIndex].players.length>2||socketId===myLobbies[lIndex].players[0].id){
-      const gameOptions={
-        rounds:3,
-      }
+  if (myLobbies[lIndex].players.length > 2 || socketId === myLobbies[lIndex].players[0].id) {
+    const gameOptions = {
+      rounds: 3,
+    };
     return {
-      ok:true,
-      gameSettings:gameOptions
-    }
+      ok: true,
+      gameSettings: gameOptions,
+    };
   } else {
-    throwToRoom(lobbyName,"Not enough players to start game!😲")
-    console.log("Not enough players!");
+    throwToRoom(lobbyName, 'Not enough players to start game!😲');
+    console.log('Not enough players!');
     return {
-      ok:false,
-      gameSettings:null
-    }
+      ok: false,
+      gameSettings: null,
+    };
   }
-})
+});
 
 // Create http/s server
 const server = sockServer(app, false);
@@ -179,9 +166,10 @@ const server = sockServer(app, false);
 /**
  * Listen on the specified port, and for any errors
  */
-server.listen(config.port, () => {
-  console.info('Server started on port %s.', config.port)
-})
-.on("error", (err: any) => {
-  console.error("Server Error: ", err)
-})
+server
+  .listen(config.port, () => {
+    console.info('Server started on port %s.', config.port);
+  })
+  .on('error', (err: any) => {
+    console.error('Server Error: ', err);
+  });
