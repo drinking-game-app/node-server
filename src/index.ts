@@ -20,10 +20,7 @@ import Session from 'express-session';
 // Redis Database
 import { createClient as createRedisClient } from 'redis';
 // import connectRedis from 'connect-redis';
-
-// @ts-ignore
-// import sockServer from '@rossmacd/gamesock-server'
-import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, throwToRoom, Player, Lobby } from '@rossmacd/gamesock-server';
+import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, startRound, throwToRoom, Player, Lobby } from '@rossmacd/gamesock-server';
 
 /**
  * Mongoose Connection configurations
@@ -70,11 +67,6 @@ mongoose.connection.on('error', () => {
 // });
 
 // Game Code
-// override auth function
-// gamesock.onAuth((token:string)=>{
-//   console.log(token);
-//   return true
-// });
 const myLobbies: Lobby[] = [];
 
 app.get('/stats', (req, res) => {
@@ -104,18 +96,6 @@ onLobbyJoin((lobbyName, player) => {
   return myLobbies[plIndex].players;
 });
 
-// Set player Status to ready
-// onPlayerReady((lobbyName:string, playerId:string)=>{
-//   // Get the lobby
-//   const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
-//   // Get the player
-//   const pIndex = myLobbies[lIndex].players.findIndex((player:Player)=>player.id===playerId);
-//   // Set the status to ready server-side
-//   myLobbies[lIndex].players[pIndex].ready=true;
-//   // Broadcast the playerNumber back to the others
-//   return pIndex
-// })
-
 // Update a single player
 onUpdateSinglePlayer((lobbyName: string, newPlayer: Player) => {
   console.log('Updating');
@@ -144,6 +124,13 @@ onStartGame((lobbyName: string, socketId: string) => {
     const gameOptions = {
       rounds: 3,
     };
+    startRound(lobbyName, {
+      roundNum:1,
+      hotseatPlayers: [myLobbies[lIndex].players[0],myLobbies[lIndex].players[1]],
+      numQuestions: 3,
+      time:0,
+      timerStart:0
+    });
     return {
       ok: true,
       gameSettings: gameOptions,
