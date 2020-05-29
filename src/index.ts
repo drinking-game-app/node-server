@@ -128,8 +128,7 @@ onStartGame((lobbyName: string, socketId: string) => {
       roundNum:1,
       hotseatPlayers: [myLobbies[lIndex].players[0],myLobbies[lIndex].players[1]],
       numQuestions: 3,
-      time:0,
-      timerStart:0
+      time:30,
     });
     return {
       ok: true,
