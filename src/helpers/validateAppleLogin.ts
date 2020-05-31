@@ -71,7 +71,9 @@ export const loginWithApple = (type: string, token: string) => {
         },
       });
       // if(res.body.error)
-      console.log('apple response!', res.data, 'user ID!!!', getUserId(res.data.id_token))
+      console.log('apple response!', res.data)
+
+      console.log('user ID!!!', getUserId(res.data.id_token))
 
       /**
        * Create the user from the res payload
