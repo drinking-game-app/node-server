@@ -103,7 +103,7 @@ export const loginWithApple = (type: string, token: string) => {
  */
 const getClientSecret = async () => {
   const privateKey = config.apple_private_key;
-  
+
   const headers = {
     kid: config.apple_key_id,
     // @ts-ignore
