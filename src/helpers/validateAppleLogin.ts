@@ -71,7 +71,7 @@ export const loginWithApple = (type: string, token: string) => {
         },
       });
       // if(res.body.error)
-      console.log('apple response!', res)
+      console.log('apple response!', res.data)
 
       /**
        * Create the user from the res payload
@@ -82,7 +82,7 @@ export const loginWithApple = (type: string, token: string) => {
         oAuthToken: res.sub,
       };
 
-      resolve(user);
+      resolve(null);
     } catch (err) {
       console.log("error autenticating with Apple!", err);
       reject(err);
