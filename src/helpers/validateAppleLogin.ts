@@ -57,12 +57,12 @@ export const loginWithApple = (type: string, token: string) => {
       /**
        * Build the url with all the appropiate information
        */
-      const requestBody: any = {
-        grant_type: 'authorization_code',
-        code: token,
-        client_id: clientId,
-        client_secret: clientSecret,
-      }
+      // const requestBody: any = {
+      //   grant_type: 'authorization_code',
+      //   code: token,
+      //   client_id: clientId,
+      //   client_secret: clientSecret,
+      // }
       const urlBody = `code=${token}&client_secret=${clientSecret}&client_id=${clientId}&grant_type=authorization_code`;
         console.log('url!', urlBody)
       /**
@@ -103,7 +103,7 @@ export const loginWithApple = (type: string, token: string) => {
  */
 const getClientSecret = async () => {
   const privateKey = config.apple_private_key;
-
+  console.log('private key!!', privateKey)
   const headers = {
     kid: config.apple_key_id,
     // @ts-ignore
