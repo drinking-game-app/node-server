@@ -32,7 +32,7 @@ router.route(`${prefix}/signout/:accessToken?`)
     .get(authCtrl.requireSignin, authCtrl.signout)
 
 /**
- * @method POST - Verify a login with Google
+ * @method POST - Verify a login with a third party
  */
 router.route(`${prefix}/signin/:provider/:type`)
     .post(authCtrl.loginWithThirdParty)

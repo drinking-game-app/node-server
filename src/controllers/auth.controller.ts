@@ -191,8 +191,8 @@ export const loginWithThirdParty = async (req: Request, res: Response) => {
   try {
     if (provider === "google")
       user = await loginWithGoogle(type, req.body.token, req.body.accessToken);
-    else user = await loginWithApple(type, req.body.token);
-
+    else user = await loginWithApple(type, req.body);
+    
     /**
      * Either create or update a user in our database
      * with the email provided from the ticket payload

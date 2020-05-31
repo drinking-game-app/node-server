@@ -32,13 +32,19 @@ import fetch from 'node-fetch'
  */
 import config from "./../../config/config";
 
+interface IAppleRequestBody {
+  token: string;
+  name: string;
+  email: string;
+}
+
 /**
  * Verify the Apple JWT token sent from the frontend
  *
  * @param {Request} req
  * @param {Response} res
  */
-export const loginWithApple = (type: string, token: string) => {
+export const loginWithApple = (type: string, body: IAppleRequestBody) => {
   return new Promise(async (resolve, reject) => {
     try {
 
@@ -57,8 +63,8 @@ export const loginWithApple = (type: string, token: string) => {
       /**
        * Build the url with all the appropiate information
        */
-      const urlBody = `code=${token}&client_secret=${clientSecret}&client_id=${clientId}&grant_type=authorization_code`;
-        console.log('url!', urlBody)
+      const urlBody = `code=${body.token}&client_secret=${clientSecret}&client_id=${clientId}&grant_type=authorization_code`;
+
       /**
        * Send a fetch request to apple to
        * confirm the auth token
@@ -70,21 +76,30 @@ export const loginWithApple = (type: string, token: string) => {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      // if(res.body.error)
-      console.log('apple response!', res.data)
 
+      console.log('apple response!', res.json())
+
+      if(res.status === 200) {
+        return resolve({
+          name: body.name,
+          email: body.email,
+          oAuthToken: body.token
+        })
+      }
+
+      throw new Error(`Could not validate the user`);
       // console.log('user ID!!!', getUserId(res.data.id_token))
 
-      /**
-       * Create the user from the res payload
-       */
-      const user: any = {
-        name: res.name,
-        email: res.email,
-        oAuthToken: res.sub,
-      };
+      // /**
+      //  * Create the user from the res payload
+      //  */
+      // const user: any = {
+      //   name: res.name,
+      //   email: res.email,
+      //   oAuthToken: res.sub,
+      // };
 
-      resolve(null);
+      // resolve(null);
     } catch (err) {
       console.log("error autenticating with Apple!", err);
       reject(err);
