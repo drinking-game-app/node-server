@@ -102,7 +102,8 @@ export const loginWithApple = (type: string, token: string) => {
  * Generate a client secret to send to Apple
  */
 const getClientSecret = async () => {
-  const privateKey = await fs.readFile(config.private_key_file_path);
+  const privateKey = config.apple_private_key;
+  
   const headers = {
     kid: config.apple_key_id,
     // @ts-ignore
