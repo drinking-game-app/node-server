@@ -15,7 +15,7 @@
 // import { Application } from "express";
 // import GameSock, { Lobby, Player } from "@rossmacd/gamesock-server";
 
-// const lobbies: Lobby[] = [];
+// let lobbies: Lobby[] = [];
 
 // /**
 //  * Main Game Controller
@@ -64,56 +64,124 @@
 //   /**
 //    * On joining a lobby
 //    *
-//    * @todo return either an empty array or array of players
-//    *
 //    * @param {string} lobbyName
 //    * @param {Player} player
 //    */
 //   GameSock.onLobbyJoin((lobbyName: string, player: Player) => {
-//     /**
-//      * @todo check if the lobby allows players
-//      */
 //     let returnLobbies: Player[] = [];
+
 //     lobbies.forEach((lobby) => {
 //       const playerExists = lobby.players.find(
 //         (lobbyPlayer: Player) => lobbyPlayer.name === player.name
 //       );
+
 //       if (lobby.name === lobbyName && !playerExists) {
 //         lobby.players.push(player);
 //         returnLobbies = lobby.players;
-//       }
+//       } else GameSock.throwToRoom(lobbyName, "Player is already in this lobby");
 //     });
 
-//     return returnLobbies;
-//   });
+// //     return returnLobbies;
+// //   });
 
 //   /**
-//    * When a player is ready within a lobby
-//    *
-//    * @param {string} lobbyName
-//    * @param {string} playerId
+//    * Update a single player
 //    */
-//   GameSock.onPlayerReady((lobbyName: string, playerId: string) => {
-//     /**
-//      * @todo if all players are ready start the game
-//      */
-//     console.log("player ready", lobbyName, playerId);
-//     /**
-//      * Returning 0 is the host
-//      */
-//     return 0;
-//   });
-
-//   // Update a single player
 //   GameSock.onUpdateSinglePlayer((lobbyName: string, player: Player) => {
-//     console.log("Updating");
-//     // Get the lobby
-//     // const lIndex = myLobbies.findIndex(lobby=>lobby.name===lobbyName);
-//     player.name = "Ultan";
+//     const lIndex = findLobbyIndex(lobbyName);
+//     const pIndex = findPlayerIndex(lIndex, player.id);
+
+//     player = { ...player, score: 0 };
+//     lobbies[lIndex].players[pIndex] = player;
+
 //     return player;
 //   });
 
+//   // Get player list
+//   GameSock.onGetPlayers((lobbyName: string) => {
+//     // Get the lobby
+//     const lIndex = findLobbyIndex(lobbyName);
+//     // Return player list
+//     return lobbies[lIndex].players;
+//   });
+
+//   // Start the game
+//   GameSock.onStartGame((lobbyName: string, socketId: string) => {
+//     // Get the lobby
+//     const lIndex = findLobbyIndex(lobbyName);
+//     // Check if we can start game
+//     if (
+//       lobbies[lIndex].players.length > 2 &&
+//       socketId === lobbies[lIndex].players[0].id
+//     ) {
+//       const gameOptions = {
+//         rounds: 3,
+//       };
+//       GameSock.startRound(lobbyName, {
+//         roundNum: 1,
+//         hotseatPlayers: pickPlayers(lobbies[lIndex].players),
+//         numQuestions: 3,
+//         time: 0,
+//         timerStart: 0,
+//       });
+//       return {
+//         ok: true,
+//         gameSettings: gameOptions,
+//       };
+//     } else {
+//       GameSock.throwToRoom(lobbyName, "Not enough players to start game!😲");
+//       console.log("Not enough players!");
+//       return {
+//         ok: false,
+//         gameSettings: null,
+//       };
+//     }
+//   });
+
 //   /**
+//    * Picks players for the hotseat
+//    *
+//    * @todo - some random picking in here
+//    *
+//    * @param {Player[]} players
+//    */
+//   const pickPlayers = (players: Player[]): [Player, Player] => {
+//     return [players[0], players[1]];
+//   };
+
+//   /**
+//    * Find a lobby index using a lobby name
+//    *
+//    * @param {string} lobbyName
+//    * @return {number} index
+//    */
+//   const findLobbyIndex = (lobbyName: string): number => {
+//     return lobbies.findIndex((lobby) => lobby.name === lobbyName);
+//   };
+
+//   /**
+//    * Find a player index using a lobby number and playerId
+//    *
+//    * @param {string} lobbyName
+//    * @param {string} playerId
+//    * @return {number} index
+//    */
+//   const findPlayerIndex = (lobbyNumber: number, playerId: string): number => {
+//     return lobbies[lobbyNumber].players.findIndex(
+//       (player: Player) => playerId === player.id
+//     );
+//   };
+
+//   /**
+//    * Delete Lobbies for testing
+//    */
+//   app.get("/api/deleteLobby", (req, res) => {
+//     lobbies = [];
+//     res.status(200).json("👺");
+//   });
+
+//   /**
+//    *
 //    * Return the socket server to express
 //    */
 //   return GameSock.sockServer(app, https);
