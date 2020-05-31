@@ -41,13 +41,13 @@ import config from "./../../config/config";
 export const loginWithApple = (type: string, token: string) => {
   return new Promise(async (resolve, reject) => {
     try {
-    console.log('starting login with apple')
 
       const clientSecret = await getClientSecret();
       /**
        * @todo Find out what the fuck this is
        */
       const clientId = config.apple_bundle_id;
+
 
       /**
        * Verify the token created in the frotnend
@@ -57,12 +57,6 @@ export const loginWithApple = (type: string, token: string) => {
       /**
        * Build the url with all the appropiate information
        */
-      // const requestBody: any = {
-      //   grant_type: 'authorization_code',
-      //   code: token,
-      //   client_id: clientId,
-      //   client_secret: clientSecret,
-      // }
       const urlBody = `code=${token}&client_secret=${clientSecret}&client_id=${clientId}&grant_type=authorization_code`;
         console.log('url!', urlBody)
       /**
@@ -71,8 +65,6 @@ export const loginWithApple = (type: string, token: string) => {
        */
       const res: any = await fetch(`https://appleid.apple.com/auth/token`, {
         method: "POST",
-        // @ts-ignore
-        // data: querystring.stringify(requestBody),
         body: urlBody,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -102,8 +94,8 @@ export const loginWithApple = (type: string, token: string) => {
  * Generate a client secret to send to Apple
  */
 const getClientSecret = async () => {
-  const privateKey = config.apple_private_key;
-  console.log('private key!!', privateKey)
+  const privateKey = config.apple_private_key.replace(/\\n/g, '\n');
+
   const headers = {
     kid: config.apple_key_id,
     // @ts-ignore
