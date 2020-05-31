@@ -71,7 +71,7 @@ export const loginWithApple = (type: string, token: string) => {
         },
       });
       // if(res.body.error)
-      console.log('apple response!', res.data)
+      console.log('apple response!', res.data, 'user ID!!!', getUserId(res.data.id_token))
 
       /**
        * Create the user from the res payload
@@ -89,6 +89,15 @@ export const loginWithApple = (type: string, token: string) => {
     }
   });
 };
+
+const getUserId = (token: string) => {
+	const parts = token.split('.')
+	try {
+		return JSON.parse(new Buffer(parts[1], 'base64').toString('ascii'))
+	} catch (e) {
+		return null
+	}
+}
 
 /**
  * Generate a client secret to send to Apple
