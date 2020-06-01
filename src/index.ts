@@ -20,7 +20,7 @@ import Session from 'express-session';
 // Redis Database
 import { createClient as createRedisClient } from 'redis';
 // import connectRedis from 'connect-redis';
-import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, startRound, throwToRoom, Player, Lobby,onReturnQuestions,Question } from '@rossmacd/gamesock-server';
+import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, startRound, throwToRoom, Player, Lobby,onReturnQuestions,Question,onDisconnect } from '@rossmacd/gamesock-server';
 
 /**
  * Mongoose Connection configurations
@@ -148,11 +148,27 @@ onReturnQuestions((lobbyName: string, questions: Question[], roundOptions) => {
   // This should shuffle the questions for debuggable results we just reverse
   return questions.reverse()
 })
+onDisconnect((lobbyName: string, id: string) => {
+  console.log(`Disconnecting ${id} from ${lobbyName}`)
+  const lIndex = myLobbies.findIndex((lobby) => lobby.name === lobbyName);
+  if (lIndex === -1) {
+    return
+  }
+  const plIndex = myLobbies.findIndex((lobby) => lobby.name === lobbyName);
+  if (plIndex === 0) {
+    console.log('deleting'+lobbyName)
+    myLobbies[lIndex]=null
+    return
+  }
+  console.log(myLobbies[lIndex],`Bye Bye ${myLobbies[lIndex].players[plIndex].name}`)
+  myLobbies[lIndex].players[plIndex]=null
+})
+
 
 // Create http/s server
 const server = sockServer(app, false);
 
-// test
+
 
 /**
  * Listen on the specified port, and for any errors
