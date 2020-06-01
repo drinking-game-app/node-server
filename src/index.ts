@@ -20,7 +20,7 @@ import Session from 'express-session';
 // Redis Database
 import { createClient as createRedisClient } from 'redis';
 // import connectRedis from 'connect-redis';
-import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, startRound, throwToRoom, Player, Lobby } from '@rossmacd/gamesock-server';
+import { sockServer, onAuth, onLobbyCreate, onLobbyJoin, onUpdateSinglePlayer, onGetPlayers, onStartGame, startRound, throwToRoom, Player, Lobby,onReturnQuestions,Question } from '@rossmacd/gamesock-server';
 
 /**
  * Mongoose Connection configurations
@@ -143,6 +143,11 @@ onStartGame((lobbyName: string, socketId: string) => {
     };
   }
 });
+
+onReturnQuestions((lobbyName: string, questions: Question[], roundOptions) => {
+  // This should shuffle the questions for debuggable results we just reverse
+  return questions.reverse()
+})
 
 // Create http/s server
 const server = sockServer(app, false);
