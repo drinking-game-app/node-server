@@ -18,11 +18,6 @@
 import jwt from "jsonwebtoken";
 
 /**
- * Import fs from node
- */
-import fs from "fs-extra";
-
-/**
  * Import fetch for request making
  */
 import fetch from 'node-fetch'
@@ -32,11 +27,20 @@ import fetch from 'node-fetch'
  */
 import config from "./../../config/config";
 
+/**
+ * A user logging in with apple
+ * being sent along with 
+ * the request body
+ */
 interface IAppleUserBody {
   name: string;
   email: string;
 }
 
+/**
+ * The request body being sent 
+ * from the frontend
+ */
 interface IAppleRequestBody {
   token: string;
   user: IAppleUserBody;
@@ -48,26 +52,28 @@ interface IAppleRequestBody {
  * @param {Request} req
  * @param {Response} res
  */
-export const loginWithApple = (type: string, body: IAppleRequestBody) => {
+export const loginWithApple = (body: IAppleRequestBody) => {
   return new Promise(async (resolve, reject) => {
     try {
 
-      const clientSecret = await getClientSecret();
       /**
-       * @todo Find out what the fuck this is
+       * Generate a clientSecret web token
+       * using the ES256 algorithm
+      */
+      const clientSecret = await getClientSecret();
+
+      /**
+       * Get the apple bundle ID from
+       * the environment variables
        */
       const clientId = config.apple_bundle_id;
-
-
-      /**
-       * Verify the token created in the frotnend
-       * with Apple, along with our client ID
-       */
-      console.log("commencing apple verification!", body)
-
       
       /**
-       * Build the url with all the appropiate information
+       * Build the url with: 
+       * -created client secret
+       * -token from the request
+       * -client ID from environment variables
+       * -grant type
        */
       const urlBody = `code=${body.token}&client_secret=${clientSecret}&client_id=${clientId}&grant_type=authorization_code`;
 
@@ -83,38 +89,41 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
         },
       })
 
+      /**
+       * If the response was ok (200),
+       * parse the JSON and get the user
+       */
       if(res.ok) {
         let jsonRes = await res.json()
-        console.log('JSON apple response!', jsonRes)
 
+        /**
+         * Get the user from the JWT token
+         */
         const decodedUser = getUser(jsonRes.id_token)
 
+        /**
+         * Build the user object
+         * to be resolved back to 
+         * the auth controller
+         */
         let user: any = {
           email: decodedUser.email,
           refreshToken: jsonRes.refresh_token,
           accessToken: jsonRes.access_token,
         }
 
+        /**
+         * If the request body contained an email,
+         * this means it is the first time this user
+         * signed up, so attach their name to the object
+         */
         if(body.user.email) user.name = body.user.name
 
-        console.log('resolveing!! user iD!!!!!', user)
-
         return resolve(user)
-
       }
+
       throw new Error(`Could not validate the user`);
-      // console.log('user ID!!!', getUserId(res.data.id_token))
 
-      // /**
-      //  * Create the user from the res payload
-      //  */
-      // const user: any = {
-      //   name: res.name,
-      //   email: res.email,
-      //   oAuthToken: res.sub,
-      // };
-
-      // resolve(null);
     } catch (err) {
       console.log("error autenticating with Apple!", err);
       reject(err);
@@ -122,6 +131,12 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
   });
 };
 
+/**
+ * Decode the user from
+ * a JWT sent by apple
+ * 
+ * @param {string} token 
+ */
 const getUser = (token: string) => {
 	const parts = token.split('.')
 	try {
