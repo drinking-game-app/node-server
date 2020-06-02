@@ -32,10 +32,14 @@ import fetch from 'node-fetch'
  */
 import config from "./../../config/config";
 
-interface IAppleRequestBody {
-  token: string;
+interface IAppleUserBody {
   name: string;
   email: string;
+}
+
+interface IAppleRequestBody {
+  token: string;
+  user: IAppleUserBody;
 }
 
 /**
