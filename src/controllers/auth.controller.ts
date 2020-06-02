@@ -202,6 +202,8 @@ export const loginWithThirdParty = async (req: Request, res: Response) => {
       upsert: true,
     });
 
+    console.log('user created or updated!', response)
+
     /**
      * Sign the user's unique ID into a
      * JSON Web Token string payload

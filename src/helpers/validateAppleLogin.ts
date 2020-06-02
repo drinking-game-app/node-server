@@ -59,7 +59,9 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
        * Verify the token created in the frotnend
        * with Apple, along with our client ID
        */
-        console.log("commencing apple verification!", body)
+      console.log("commencing apple verification!", body)
+
+      
       /**
        * Build the url with all the appropiate information
        */
@@ -76,21 +78,24 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       })
+
       if(res.ok) {
         let jsonRes = await res.json()
         console.log('JSON apple response!', jsonRes)
 
-        const userId = getUserId(jsonRes.id_token)
+        const decodedUser = getUser(jsonRes.id_token)
 
-        console.log('user iD!!!!!', userId)
+        let user: any = {
+          email: decodedUser.email,
+          refreshToken: jsonRes.refresh_token,
+          accessToken: jsonRes.access_token,
+        }
 
+        if(body.name) user.name = body.name
 
-        return resolve({
-          name: body.name,
-          email: body.email,
-          refresh_token: jsonRes.refresh_token,
-          access_token: jsonRes.access_token,
-        })
+        console.log('resolveing!! user iD!!!!!', user)
+
+        return resolve(user)
 
       }
       throw new Error(`Could not validate the user`);
@@ -113,7 +118,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
   });
 };
 
-const getUserId = (token: string) => {
+const getUser = (token: string) => {
 	const parts = token.split('.')
 	try {
 		return JSON.parse(Buffer.from(parts[1], 'base64').toString('ascii'))
