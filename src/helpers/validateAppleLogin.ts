@@ -75,8 +75,9 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-      });
-
+      })
+      
+      console.log('status!', res.status, res.status === 200)
       console.log('apple response!', res)
 
       if(res.status === 200) {

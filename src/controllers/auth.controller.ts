@@ -243,6 +243,8 @@ export const loginWithThirdParty = async (req: Request, res: Response) => {
      */
     return res.status(200).json(handleSuccess({ token, user: responseUser }));
   } catch (err) {
-    return res.status(401).json(handleError(err));
+    console.log('error authenticating third party!', err)
+
+    return res.status(401).json(handleError(err.toString()));
   }
 };

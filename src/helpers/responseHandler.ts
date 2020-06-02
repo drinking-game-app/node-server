@@ -21,7 +21,7 @@
  */
 export const handleSuccess = (data: any) => {
     return {
-        sucess: true,
+        success: true,
         data
     }
 }
@@ -37,7 +37,7 @@ export const handleError = (error: any) => {
     : error
 
     return {
-        sucess: false,
+        success: false,
         error: errorString
     }
 }
