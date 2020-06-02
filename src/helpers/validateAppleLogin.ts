@@ -78,17 +78,20 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
       })
       if(res.ok) {
         let jsonRes = await res.json()
-      
-      
-      console.log('JSON apple response!', jsonRes)
+        console.log('JSON apple response!', jsonRes)
 
-      if(res.status === 200) {
+        const userId = getUserId(jsonRes.id_token)
+
+        console.log('user iD!!!!!', userId)
+
+
         return resolve({
           name: body.name,
           email: body.email,
-          oAuthToken: body.token
+          refresh_token: jsonRes.refresh_token,
+          access_token: jsonRes.access_token,
         })
-      }
+
       }
       throw new Error(`Could not validate the user`);
       // console.log('user ID!!!', getUserId(res.data.id_token))
