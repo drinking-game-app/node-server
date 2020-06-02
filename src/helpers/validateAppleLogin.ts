@@ -77,7 +77,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
         },
       })
 
-      const jsonRes = await res.JSON()
+      const jsonRes = JSON.stringify(res)
       
       
       console.log('JSON apple response!', jsonRes)
