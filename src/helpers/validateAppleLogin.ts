@@ -116,7 +116,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
 const getUserId = (token: string) => {
 	const parts = token.split('.')
 	try {
-		return JSON.parse(new Buffer(parts[1], 'base64').toString('ascii'))
+		return JSON.parse(Buffer.from(parts[1], 'base64').toString('ascii'))
 	} catch (e) {
 		return null
 	}
