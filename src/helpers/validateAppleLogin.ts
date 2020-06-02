@@ -95,7 +95,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
           accessToken: jsonRes.access_token,
         }
 
-        if(body.user.name) user.name = body.user.name
+        if(body.user.email) user.name = body.user.name
 
         console.log('resolveing!! user iD!!!!!', user)
 
