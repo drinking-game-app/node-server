@@ -29,7 +29,7 @@ import config from "./../../config/config";
 
 /**
  * A user logging in with apple
- * being sent along with 
+ * being sent along with
  * the request body
  */
 interface IAppleUserBody {
@@ -38,7 +38,7 @@ interface IAppleUserBody {
 }
 
 /**
- * The request body being sent 
+ * The request body being sent
  * from the frontend
  */
 interface IAppleRequestBody {
@@ -59,7 +59,7 @@ export const loginWithApple = (body: IAppleRequestBody) => {
       /**
        * Generate a clientSecret web token
        * using the ES256 algorithm
-      */
+       */
       const clientSecret = await getClientSecret();
 
       /**
@@ -67,9 +67,9 @@ export const loginWithApple = (body: IAppleRequestBody) => {
        * the environment variables
        */
       const clientId = config.apple_bundle_id;
-      
+
       /**
-       * Build the url with: 
+       * Build the url with:
        * -created client secret
        * -token from the request
        * -client ID from environment variables
@@ -81,7 +81,7 @@ export const loginWithApple = (body: IAppleRequestBody) => {
        * Send a fetch request to apple to
        * confirm the auth token
        */
-      let res: any = await fetch(`https://appleid.apple.com/auth/token`, {
+      const res: any = await fetch(`https://appleid.apple.com/auth/token`, {
         method: "POST",
         body: urlBody,
         headers: {
@@ -94,7 +94,7 @@ export const loginWithApple = (body: IAppleRequestBody) => {
        * parse the JSON and get the user
        */
       if(res.ok) {
-        let jsonRes = await res.json()
+        const jsonRes = await res.json()
 
         /**
          * Get the user from the JWT token
@@ -103,10 +103,10 @@ export const loginWithApple = (body: IAppleRequestBody) => {
 
         /**
          * Build the user object
-         * to be resolved back to 
+         * to be resolved back to
          * the auth controller
          */
-        let user: any = {
+        const user: any = {
           email: decodedUser.email,
           refreshToken: jsonRes.refresh_token,
           accessToken: jsonRes.access_token,
@@ -134,8 +134,8 @@ export const loginWithApple = (body: IAppleRequestBody) => {
 /**
  * Decode the user from
  * a JWT sent by apple
- * 
- * @param {string} token 
+ *
+ * @param {string} token
  */
 const getUser = (token: string) => {
 	const parts = token.split('.')
