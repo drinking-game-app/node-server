@@ -69,15 +69,15 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
        * Send a fetch request to apple to
        * confirm the auth token
        */
-      const res: any = await fetch(`https://appleid.apple.com/auth/token`, {
+      let res: any = await fetch(`https://appleid.apple.com/auth/token`, {
         method: "POST",
         body: urlBody,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       })
-
-      const jsonRes = JSON.stringify(res)
+      if(res.ok) {
+        let jsonRes = await res.json()
       
       
       console.log('JSON apple response!', jsonRes)
@@ -89,7 +89,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
           oAuthToken: body.token
         })
       }
-
+      }
       throw new Error(`Could not validate the user`);
       // console.log('user ID!!!', getUserId(res.data.id_token))
 
