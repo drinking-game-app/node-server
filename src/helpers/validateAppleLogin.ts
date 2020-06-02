@@ -59,7 +59,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
        * Verify the token created in the frotnend
        * with Apple, along with our client ID
        */
-
+        console.log("commencing apple verification!", body)
       /**
        * Build the url with all the appropiate information
        */
@@ -77,7 +77,7 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
         },
       });
 
-      console.log('apple response!', res.json())
+      console.log('apple response!', res)
 
       if(res.status === 200) {
         return resolve({
