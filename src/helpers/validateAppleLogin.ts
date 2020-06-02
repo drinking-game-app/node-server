@@ -76,9 +76,11 @@ export const loginWithApple = (type: string, body: IAppleRequestBody) => {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       })
+
+      const jsonRes = await res.JSON()
       
-      console.log('status!', res.status, res.status === 200)
-      console.log('apple response!', res)
+      
+      console.log('JSON apple response!', jsonRes)
 
       if(res.status === 200) {
         return resolve({
