@@ -14,8 +14,16 @@
 
 import { Application } from "express";
 import GameSock, { Lobby, Player } from "@rossmacd/gamesock-server";
+import jwt from "jsonwebtoken";
+import config from "../../config/config";
 
 let lobbies: Lobby[] = [];
+
+const defaultGameOptions = {
+    numRounds: 3,
+    numQuestions: 3,
+    time: 30,
+}
 
 /**
  * Main Game Controller
@@ -40,6 +48,8 @@ export const gameController = (app: Application, https: boolean) => {
     /**
      * @todo check JWT token and confirm auth
      */
+    const verified = jwt.verify(token, config.jwtSecret)
+    console.log('verified!', verified)
 
     return true;
   });
@@ -115,13 +125,13 @@ export const gameController = (app: Application, https: boolean) => {
       socketId === lobbies[lIndex].players[0].id
     ) {
       const gameOptions = {
-        rounds: 3,
+        rounds: defaultGameOptions.numRounds,
       };
       GameSock.startRound(lobbyName, {
         roundNum: 1,
         hotseatPlayers: pickPlayers(lobbies[lIndex].players),
-        numQuestions: 3,
-        time: 0,
+        numQuestions: defaultGameOptions.numRounds,
+        time: defaultGameOptions.time,
         timerStart: 0,
       });
       return {
