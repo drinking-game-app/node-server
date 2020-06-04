@@ -13,7 +13,30 @@
  */
 
 import { Application } from "express";
-import GameSock, { Lobby, Player } from "@rossmacd/gamesock-server";
+import GameSock, {
+  Lobby,
+  Player,
+  Question,
+  RoundOptions,
+} from "@rossmacd/gamesock-server";
+import jwt from "jsonwebtoken";
+import config from "../../config/config";
+
+interface GameOptions {
+  rounds: number;
+  numQuestions: number;
+  timeToWriteQuestions: number;
+  timeToAnswerQuestions: number;
+  timeBetweenQuestions: number;
+}
+
+const defaultGameOptions: GameOptions = {
+  rounds: 1,
+  numQuestions: 3,
+  timeToWriteQuestions: 30,
+  timeToAnswerQuestions: 3,
+  timeBetweenQuestions: 5,
+};
 
 let lobbies: Lobby[] = [];
 
@@ -40,8 +63,14 @@ export const gameController = (app: Application, https: boolean) => {
     /**
      * @todo check JWT token and confirm auth
      */
+    try {
+      const verified = jwt.verify(token, config.jwtSecret);
 
-    return true;
+      return true;
+    } catch (err) {
+      console.log("User is not authenticated", err);
+      return false;
+    }
   });
 
   /**
@@ -69,17 +98,12 @@ export const gameController = (app: Application, https: boolean) => {
    */
   GameSock.onLobbyJoin((lobbyName: string, player: Player) => {
     let returnLobbies: Player[] = [];
+    const lIndex = findLobbyIndex(lobbyName);
 
-    lobbies.forEach((lobby) => {
-      const playerExists = lobby.players.find(
-        (lobbyPlayer: Player) => lobbyPlayer.name === player.name
-      );
-
-      if (lobby.name === lobbyName && !playerExists) {
-        lobby.players.push(player);
-        returnLobbies = lobby.players;
-      } else GameSock.throwToRoom(lobbyName, "Player is already in this lobby");
-    });
+    if (lIndex !== -1 && findPlayerIndexByName(lIndex, player.name) === -1) {
+      lobbies[lIndex].players.push(player);
+      returnLobbies = lobbies[lIndex].players;
+    } else GameSock.throwToRoom(lobbyName, "Player is already in this lobby");
 
     return returnLobbies;
   });
@@ -107,6 +131,7 @@ export const gameController = (app: Application, https: boolean) => {
 
   // Start the game
   GameSock.onStartGame((lobbyName: string, socketId: string) => {
+    console.log('starting GAMEEEE', lobbyName, socketId)
     // Get the lobby
     const lIndex = findLobbyIndex(lobbyName);
     // Check if we can start game
@@ -115,15 +140,18 @@ export const gameController = (app: Application, https: boolean) => {
       socketId === lobbies[lIndex].players[0].id
     ) {
       const gameOptions = {
-        rounds: 3,
+        // Total rounds
+        rounds: defaultGameOptions.rounds,
       };
-      GameSock.startRound(lobbyName, {
-        roundNum: 1,
-        hotseatPlayers: pickPlayers(lobbies[lIndex].players),
-        numQuestions: 3,
-        time: 0,
-        timerStart: 0,
-      });
+
+      const pickedPlayers = pickPlayers(lobbies[lIndex], lIndex);
+      lobbies[lIndex].currentHotseat = [
+        pickedPlayers[0].id,
+        pickedPlayers[1].id,
+      ];
+
+      onRoundStart(lobbyName, pickedPlayers);
+
       return {
         ok: true,
         gameSettings: gameOptions,
@@ -139,14 +167,210 @@ export const gameController = (app: Application, https: boolean) => {
   });
 
   /**
-   * Picks players for the hotseat
+   * Questions being returned to the server after phase 1
    *
-   * @todo - some random picking in here
-   *
-   * @param {Player[]} players
+   * @param {string} lobbyName
+   * @param {Question[]} questions
+   * @param roundOptions
    */
-  const pickPlayers = (players: Player[]): [Player, Player] => {
-    return [players[0], players[1]];
+  GameSock.onReturnQuestions(
+    (lobbyName: string, questions: Question[], roundOptions) => {
+      // Randomize question order
+      const newQuestionList = shuffleArray(questions);
+      console.log("return questions!!!dgnsaiogndsaiogdns", newQuestionList);
+      // Store the questions
+      const lIndex = findLobbyIndex(lobbyName);
+      lobbies[lIndex].questions = newQuestionList;
+
+      // TODO move to library
+      for (const question of questions) {
+        question.answers = [];
+      }
+
+      return newQuestionList;
+    }
+  );
+
+  /**
+   * When a player answers a question, store it in the question
+   *
+   * question[0] = {question: 'string', answer: number, playerId: string}
+   *
+   * @param {string} lobbyName
+   * @param {string} socketId
+   * @param {number} questionNumber
+   * @param {number} answer
+   */
+  GameSock.onAnswerQuestions((lobbyName, socketId, questionNumber, answer) => {
+    const lIndex = findLobbyIndex(lobbyName);
+
+    // Check which positin in the current hotseat the dude is in
+    const hotseatPosition = lobbies[lIndex].currentHotseat.findIndex(
+      (playerId) => playerId === socketId
+    );
+    // If player is not in hotseat they go bye bye
+    if (hotseatPosition !== -1) {
+      lobbies[lIndex].questions[questionNumber].answers[
+        hotseatPosition
+      ] = answer;
+    }
+  });
+
+  /**
+   * When the server requests answers from players
+   *
+   * @param {string} lobbyName
+   * @param {number} questionIndex
+   */
+  GameSock.onRequestAnswer((lobbyName, questionIndex) => {
+    const lIndex = findLobbyIndex(lobbyName);
+
+    // If both players have answered, and gave the same answer, give them points
+    if (
+      lobbies[lIndex].questions[questionIndex].answers.length === 2 &&
+      lobbies[lIndex].questions[questionIndex].answers[0] ===
+        lobbies[lIndex].questions[questionIndex].answers[1]
+    ) {
+      // Give points to the hotseatPlayers
+      addPoints(lIndex, lobbies[lIndex].currentHotseat[0], 100);
+      addPoints(lIndex, lobbies[lIndex].currentHotseat[1], 100);
+    } else {
+      // if not, give the audience points
+      addPoints(lIndex, lobbies[lIndex].questions[questionIndex].playerId, 100);
+    }
+
+    return lobbies[lIndex].questions[questionIndex].answers;
+  });
+
+  /**
+   * When a round / game ends
+   *
+   * @param {string} lobbyName
+   */
+  GameSock.onRoundEnd((lobbyName) => {
+    const lIndex = findLobbyIndex(lobbyName);
+    console.log('checking if theres another round', lobbies[lIndex].round, defaultGameOptions.rounds )
+    if (lobbies[lIndex].round < defaultGameOptions.rounds) {
+      // Next round
+      lobbies[lIndex].round++;
+      lobbies[lIndex].questions = [];
+
+      const pickedPlayers = pickPlayers(lobbies[lIndex],lIndex);
+      setTimeout(() => {
+        console.log("starting new round");
+        onRoundStart(lobbyName, pickedPlayers, lobbies[lIndex].round);
+      }, 5000);
+    } else {
+      // End game
+      console.log("Game done");
+      deleteLobby(lIndex);
+    }
+  });
+
+  /**
+   * When a player disconnects from a lobby
+   *
+   * @param {string} lobbyName
+   * @param {string} playerdId
+   */
+  GameSock.onDisconnect((lobbyName: string, playerdId: string)=>{
+    if(typeof lobbyName !=='string'){
+      return
+    }
+    const lIndex=findLobbyIndex(lobbyName)
+    if (lIndex === -1) {
+      return;
+    }
+    const pIndex = findPlayerIndex(lIndex, playerdId);
+    if (pIndex === 0) {
+      console.log('deleting' + lobbyName);
+      lobbies[lIndex] = null;
+
+      /**
+       * @todo - trigger GameSock function to kick all players
+       */
+      return;
+    }
+
+  })
+
+
+  const onRoundStart = async (
+    lobbyName: string,
+    pickedPlayers: [Player, Player],
+    round: number = 1
+  ) => {
+    console.log('round number',round)
+    GameSock.startRound(lobbyName, {
+      roundNum: round,
+      hotseatPlayers: pickedPlayers,
+      numQuestions: defaultGameOptions.numQuestions,
+      time: defaultGameOptions.timeToWriteQuestions,
+    });
+  };
+
+  /**
+   * Splice the array if the lobby is the last item in it
+   * If not set the lobby to null
+   *
+   * @param {number} lIndex
+   */
+  const deleteLobby = (lIndex: number) => {
+    console.log("Deleteing the lobby");
+
+    if (lIndex === lobbies.length - 1) lobbies.splice(lIndex, 1);
+    else lobbies[lIndex] = null;
+  };
+
+  /**
+   * Adds points to a specific player
+   *
+   * @param {number} lIndex
+   * @param {string} playerId
+   * @param {number} points
+   */
+  const addPoints = async (
+    lIndex: number,
+    playerId: string,
+    points: number
+  ) => {
+    const pIndex = findPlayerIndex(lIndex, playerId);
+    lobbies[lIndex].players[pIndex].score += points;
+  };
+  /**
+   *
+   * @param {Question[]} array
+   */
+  const shuffleArray = (array: Question[]) => {
+    return array
+      .map((a) => ({ sort: Math.random(), value: a }))
+      .sort((a, b) => a.sort - b.sort)
+      .map((a) => a.value);
+  };
+
+  /**
+   * Picks random players for the hotseat
+   *
+   * @param {Lobby} lobby
+   * @param {number} lIndex
+   */
+  const pickPlayers = (lobby: Lobby,lIndex:number): [Player, Player] => {
+    // Create an array with all player indexes
+    const playerArr = [...Array(lobby.players.length).keys()]
+
+    // check if there were players picked before
+    if(lobby.currentHotseat && lobby.currentHotseat.length > 0) {
+    // remove a random player from the playerArr
+      const oldPickedPlayer = findPlayerIndex(lIndex, lobby.currentHotseat[Math.round(Math.random())])
+      playerArr.splice(oldPickedPlayer, 1)
+    }
+
+    // Pick a random player, removing them from the array
+    const randomPlayer1 = playerArr.splice(Math.floor(Math.random()*playerArr.length), 1)[0]
+    // Pick a second random player
+    const randomPlayer2 = Math.floor(Math.random()*playerArr.length)
+
+    return [lobby.players[randomPlayer1], lobby.players[randomPlayer2]];
   };
 
   /**
@@ -169,6 +393,22 @@ export const gameController = (app: Application, https: boolean) => {
   const findPlayerIndex = (lobbyNumber: number, playerId: string): number => {
     return lobbies[lobbyNumber].players.findIndex(
       (player: Player) => playerId === player.id
+    );
+  };
+
+  /**
+   * Find a player index using a lobby number and player name
+   *
+   * @param {string} lobbyName
+   * @param {string} playerName
+   * @return {number} index
+   */
+  const findPlayerIndexByName = (
+    lobbyNumber: number,
+    playerName: string
+  ): number => {
+    return lobbies[lobbyNumber].players.findIndex(
+      (player: Player) => playerName === player.name
     );
   };
 
