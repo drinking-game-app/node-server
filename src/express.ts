@@ -22,7 +22,7 @@ import cookieParser from "cookie-parser";
 import compress from "compression";
 import helmet from "helmet";
 import cors from "cors";
-// import { gameController } from "./controllers/game.controller";
+import { gameController } from "./controllers/game.controller";
 
 /**
  * Import Routes
@@ -70,5 +70,5 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
 app.use("/", userRoutes);
 app.use("/", authRoutes);
 
-// export default gameController(app, false);
-export default app
+export default gameController(app, true);
+// export default app
