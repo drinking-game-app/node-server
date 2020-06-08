@@ -82,7 +82,9 @@ export const gameController = (app: Application, https: boolean) => {
     /**
      * @todo check if the lobby doesn't already exist
      */
-    if (lobbies.filter((dat) => dat.name === lobby.name).length > 0)
+    if (lobbies.filter((dat) => {
+      if(dat && dat.name === lobby.name) return true
+    }).length > 0)
       return false;
     console.log("lobby created", lobby);
 
@@ -357,18 +359,23 @@ export const gameController = (app: Application, https: boolean) => {
   const pickPlayers = (lobby: Lobby,lIndex:number): [Player, Player] => {
     // Create an array with all player indexes
     const playerArr = [...Array(lobby.players.length).keys()]
-
+    console.log('picking random player', playerArr)
     // check if there were players picked before
     if(lobby.currentHotseat && lobby.currentHotseat.length > 0) {
     // remove a random player from the playerArr
       const oldPickedPlayer = findPlayerIndex(lIndex, lobby.currentHotseat[Math.round(Math.random())])
       playerArr.splice(oldPickedPlayer, 1)
+      console.log('removing one old picked player', playerArr)
     }
 
     // Pick a random player, removing them from the array
     const randomPlayer1 = playerArr.splice(Math.floor(Math.random()*playerArr.length), 1)[0]
+    console.log('random player one picked', playerArr)
     // Pick a second random player
     const randomPlayer2 = Math.floor(Math.random()*playerArr.length)
+    console.log('picked two random players', randomPlayer1, randomPlayer2)
+
+    console.log('Random players picked!', lobby.players[randomPlayer1], lobby.players[randomPlayer2])
 
     return [lobby.players[randomPlayer1], lobby.players[randomPlayer2]];
   };
@@ -380,7 +387,9 @@ export const gameController = (app: Application, https: boolean) => {
    * @return {number} index
    */
   const findLobbyIndex = (lobbyName: string): number => {
-    return lobbies.findIndex((lobby) => lobby.name === lobbyName);
+    return lobbies.findIndex((lobby) => {
+      if(lobby && lobby.name === lobbyName) return true
+    });
   };
 
   /**
