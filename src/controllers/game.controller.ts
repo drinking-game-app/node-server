@@ -60,9 +60,6 @@ export const gameController = (app: Application, https: boolean) => {
    * @returns {boolean}
    */
   GameSock.onAuth((token: string) => {
-    /**
-     * @todo check JWT token and confirm auth
-     */
     try {
       const verified = jwt.verify(token, config.jwtSecret);
 
