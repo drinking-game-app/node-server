@@ -29,6 +29,7 @@ interface GameOptions {
   timeToWriteQuestions: number;
   timeToAnswerQuestions: number;
   timeBetweenQuestions: number;
+  timeBetweenRounds: number;
 }
 
 const defaultGameOptions: GameOptions = {
@@ -37,6 +38,7 @@ const defaultGameOptions: GameOptions = {
   timeToWriteQuestions: 30,
   timeToAnswerQuestions: 3,
   timeBetweenQuestions: 5,
+  timeBetweenRounds: 10000
 };
 
 let lobbies: Lobby[] = [];
@@ -260,15 +262,16 @@ export const gameController = (app: Application, https: boolean) => {
       setTimeout(() => {
         console.log("starting new round");
         onRoundStart(lobbyName, pickedPlayers, lobbies[lIndex].round);
-      }, 5000);
-    } else {
+      }, defaultGameOptions.timeBetweenRounds);
+    }
+    // } else {
       // End game
 
-      setTimeout(() => {
-        console.log("Game done");
-        deleteLobby(lIndex);
-      }, 5000);
-    }
+      // setTimeout(() => {
+      //   console.log("Game done");
+      //   deleteLobby(lIndex);
+      // }, 5000);
+    // }
   });
 
   /**
