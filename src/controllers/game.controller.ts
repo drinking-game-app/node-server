@@ -204,7 +204,7 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {number} answer
    */
   GameSock.onAnswerQuestions((lobbyName, socketId, questionNumber, answer) => {
-    console.log('question answered!', socketId, questionNumber)
+    console.log('question answered!', socketId, questionNumber, answer)
     const lIndex = findLobbyIndex(lobbyName);
 
     // Check which positin in the current hotseat the dude is in
