@@ -21,6 +21,7 @@ import GameSock, {
 } from "@rossmacd/gamesock-server";
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
+import _ from 'underscore'
 
 interface GameOptions {
   rounds: number;
@@ -201,6 +202,7 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {number} answer
    */
   GameSock.onAnswerQuestions((lobbyName, socketId, questionNumber, answer) => {
+    console.log('question answered!', socketId, questionNumber)
     const lIndex = findLobbyIndex(lobbyName);
 
     // Check which positin in the current hotseat the dude is in
@@ -328,7 +330,7 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {string} playerId
    * @param {number} points
    */
-  const addPoints = async (
+  const addPoints = (
     lIndex: number,
     playerId: string,
     points: number
@@ -366,15 +368,22 @@ export const gameController = (app: Application, https: boolean) => {
     }
 
     // Pick a random player, removing them from the array
-    const randomPlayer1 = playerArr.splice(Math.floor(Math.random()*playerArr.length), 1)[0]
-    console.log('random player one picked', playerArr)
-    // Pick a second random player
-    const randomPlayer2 = Math.floor(Math.random()*playerArr.length)
-    console.log('picked two random players', randomPlayer1, randomPlayer2)
+    // const randomPlayer1 = playerArr.splice(Math.floor(Math.random()*playerArr.length), 1)[0]
+    // console.log('random player one picked', playerArr)
+    // // Pick a second random player
 
-    console.log('Random players picked!', lobby.players[randomPlayer1], lobby.players[randomPlayer2])
+    // const randomPlayer2 = Math.floor(Math.random()*playerArr.length)
+    // console.log('picked two random players', randomPlayer1, randomPlayer2)
 
-    return [lobby.players[randomPlayer1], lobby.players[randomPlayer2]];
+    // console.log('Random players picked!', lobby.players[randomPlayer1], lobby.players[randomPlayer2])
+    console.log('picking two random players from', playerArr)
+    // return [lobby.players[randomPlayer1], lobby.players[randomPlayer2]];
+    let random = _.sample(playerArr, 2) as number[]
+    while(random[0]===random[1]){
+      random = _.sample(playerArr, 2) as number[]
+    }
+    console.log('picked two random', random)
+    return [lobby.players[random[0]], lobby.players[random[1]]];
   };
 
   /**

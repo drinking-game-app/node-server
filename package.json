@@ -37,7 +37,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.18",
     "node-fetch": "^2.6.0",
-    "ts-loader": "^7.0.5"
+    "ts-loader": "^7.0.5",
+    "underscore": "^1.10.2"
   },
   "devDependencies": {
     "@types/compression": "^1.7.0",
@@ -50,6 +51,7 @@
     "@types/mongoose": "^5.7.23",
     "@types/node-fetch": "^2.5.7",
     "@types/socket.io": "^2.1.8",
+    "@types/underscore": "^1.10.0",
     "nodemon": "^2.0.4",
     "tslint": "^6.1.2",
     "typescript": "^3.9.5"
