@@ -263,8 +263,11 @@ export const gameController = (app: Application, https: boolean) => {
       }, 5000);
     } else {
       // End game
-      console.log("Game done");
-      deleteLobby(lIndex);
+
+      setTimeout(() => {
+        console.log("Game done");
+        deleteLobby(lIndex);
+      }, 5000);
     }
   });
 
@@ -286,7 +289,7 @@ export const gameController = (app: Application, https: boolean) => {
     if (pIndex === 0) {
       console.log('deleting' + lobbyName);
       lobbies[lIndex] = null;
-
+      GameSock.kickAll(lobbyName)
       /**
        * @todo - trigger GameSock function to kick all players
        */
