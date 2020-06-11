@@ -20,8 +20,8 @@ jobs:
     - name: Run SSH command
       uses: garygrossgarten/github-action-ssh@v0.5.0
       with:
-        command: UPDATE_CMD
-        host: HOST
-        username: USERNAME
-        port: SSH_PORT
-        password: SSHPW
+        command: ${{ secrets.UPDATE_CMD }}
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        port: ${{ secrets.SSH_PORT }}
+        password: ${{ secrets.SSHPW }}
