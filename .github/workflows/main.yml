@@ -23,7 +23,7 @@ jobs:
         # Command to execute on the remote server.
         command: ${{ secrets.UPDATE_CMD }}
         # Hostname or IP address of the server.
-        host: ${{ secrets.HOST }}
+        host: ${{ secrets.HOST_ADDRESS }}
         # Username for authentication.
         user: ${{ secrets.USERNAME }}
         # Port number of the server.
