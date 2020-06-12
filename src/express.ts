@@ -12,22 +12,23 @@
  * Copyright 2020 - WebSpace
  */
 
-
 /**
  * Import primary dependencies
  */
 import express, { Application, Request, Response } from "express";
 import path from "path";
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser"
-import compress from "compression"
-import helmet from "helmet"
-import cors from "cors"
+import cookieParser from "cookie-parser";
+import compress from "compression";
+import helmet from "helmet";
+import cors from "cors";
+import { gameController } from "./controllers/game.controller";
 
 /**
  * Import Routes
  */
-import userRoutes from './routes/user.routes'
+import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
 
 /**
  * Declare express app
@@ -67,6 +68,7 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
  *
  */
 app.use("/", userRoutes);
+app.use("/", authRoutes);
 
-
-export default app;
+export default gameController(app, false);
+// export default app

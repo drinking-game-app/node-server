@@ -12,6 +12,7 @@
  * Copyright 2020 - WebSpace
  */
 
+ import getErrorMessage from './dbErrorHandler'
 
 /**
  * Sort data for a successful response
@@ -20,7 +21,7 @@
  */
 export const handleSuccess = (data: any) => {
     return {
-        sucess: true,
+        success: true,
         data
     }
 }
@@ -32,11 +33,11 @@ export const handleSuccess = (data: any) => {
  */
 export const handleError = (error: any) => {
     const errorString = typeof error !== 'string'
-    ? error.message
+    ? getErrorMessage(error)
     : error
 
     return {
-        sucess: false,
+        success: false,
         error: errorString
     }
 }
