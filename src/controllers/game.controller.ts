@@ -33,7 +33,7 @@ interface GameOptions {
 }
 
 const defaultGameOptions: GameOptions = {
-  rounds: 1,
+  rounds: 2,
   numQuestions: 3,
   timeToWriteQuestions: 30,
   timeToAnswerQuestions: 3,
@@ -52,6 +52,10 @@ let lobbies: Map<string,Lobby> = new Map();
  * @param {boolean} https
  */
 export const gameController = (app: Application, https: boolean) => {
+  app.get('/',(req,res)=>{
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify([...lobbies]));
+  })
   /**
    * Check if the user is authenticated
    * before allowing them to continue
@@ -121,6 +125,7 @@ export const gameController = (app: Application, https: boolean) => {
 
   // Get player list
   GameSock.onGetPlayers((lobbyName: string) => {
+    console.log(lobbies.get(lobbyName))
     // Return player list
     return lobbies.get(lobbyName).players;
   });
@@ -139,7 +144,7 @@ export const gameController = (app: Application, https: boolean) => {
       };
 
       const pickedPlayers = pickPlayers(lobbies.get(lobbyName), gameOptions.rounds);
-
+      console.log('ALLLICKEDLAYERS', pickedPlayers)
       onRoundStart(lobbyName, pickedPlayers[0]);
 
       return {
@@ -310,6 +315,7 @@ export const gameController = (app: Application, https: boolean) => {
     round: number = 1
   ) => {
     console.log('round number',round)
+    console.log('pickedplayers',pickedPlayers)
     GameSock.startRound(lobbyName, {
       roundNum: round,
       hotseatPlayers: [pickedPlayers[0],pickedPlayers[1]],
@@ -408,7 +414,7 @@ export const gameController = (app: Application, https: boolean) => {
 
 
   const shuffleAndPair = (array:number[],pairs:number,players:Player[]):Player[][]=>{
-    let resultIndexArray:number[]|number[][];
+    let resultIndexArray:number[];
     if(pairs<array.length){
       resultIndexArray= shuffle(array)
     }else {
@@ -418,20 +424,20 @@ export const gameController = (app: Application, https: boolean) => {
         }
     }
     // Pair
-    resultIndexArray=pair(resultIndexArray as number[])
+    const resultIndexPairs=pair(resultIndexArray as number[])
     // trim
-    if(resultIndexArray.length<pairs)console.error('Random pair picker fucked up')
-    resultIndexArray.length=pairs
-
+    if(resultIndexPairs.length<pairs)console.error('Random pair picker fucked up')
+    resultIndexPairs.length=pairs
+    // console
     // Convert to an array of players - TODO could be more efficient by just storing id - would have to account for that in frontend
     const resultPlayers=[]
-    for(const [pairIndex,resultPairs] of resultIndexArray.entries()){
+    for(const [pairIndex,resultPairs] of resultIndexPairs.entries()){
       resultPlayers.push([])
       for(const playerIndex of resultPairs){
         resultPlayers[pairIndex]=players[playerIndex]
       }
     }
-    return resultPlayers as unknown as Player[][]
+    return resultPlayers as Player[][]
 }
 
 const shuffle =(array:number[]) =>{
