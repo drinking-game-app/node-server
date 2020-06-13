@@ -425,16 +425,18 @@ export const gameController = (app: Application, https: boolean) => {
     }
     // Pair
     const resultIndexPairs=pair(resultIndexArray as number[])
+    console.log('Pairs',resultIndexPairs)
     // trim
     if(resultIndexPairs.length<pairs)console.error('Random pair picker fucked up')
     resultIndexPairs.length=pairs
-    // console
+
+    // [[1,2],[3,4]]
     // Convert to an array of players - TODO could be more efficient by just storing id - would have to account for that in frontend
     const resultPlayers=[]
     for(const [pairIndex,resultPairs] of resultIndexPairs.entries()){
       resultPlayers.push([])
       for(const playerIndex of resultPairs){
-        resultPlayers[pairIndex]=players[playerIndex]
+        resultPlayers[pairIndex].push(players[playerIndex])
       }
     }
     return resultPlayers as Player[][]
