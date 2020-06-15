@@ -30,15 +30,17 @@ interface GameOptions {
   timeToAnswerQuestions: number;
   timeBetweenQuestions: number;
   timeBetweenRounds: number;
+  points: number;
 }
 
 const defaultGameOptions: GameOptions = {
-  rounds: 2,
+  rounds: 1,
   numQuestions: 3,
   timeToWriteQuestions: 30,
-  timeToAnswerQuestions: 3,
-  timeBetweenQuestions: 5,
-  timeBetweenRounds: 10000
+  timeToAnswerQuestions: 5,
+  timeBetweenQuestions: 10,
+  timeBetweenRounds: 10000,
+  points: 1
 };
 
 let lobbies: Map<string,Lobby> = new Map();
@@ -53,6 +55,8 @@ let lobbies: Map<string,Lobby> = new Map();
  */
 export const gameController = (app: Application, https: boolean) => {
   app.get('/',(req,res)=>{
+    app.set('json spaces', 4)
+    res.type('json')
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify([...lobbies]));
   })
@@ -125,7 +129,7 @@ export const gameController = (app: Application, https: boolean) => {
 
   // Get player list
   GameSock.onGetPlayers((lobbyName: string) => {
-    console.log(lobbies.get(lobbyName))
+    console.log('getting players', lobbies.get(lobbyName).players)
     // Return player list
     return lobbies.get(lobbyName).players;
   });
@@ -138,13 +142,16 @@ export const gameController = (app: Application, https: boolean) => {
       lobbies.get(lobbyName).players.length > 2 &&
       socketId === lobbies.get(lobbyName).players[0].id
     ) {
+      lobbies.get(lobbyName).round= 1 as 0;
+      lobbies.get(lobbyName).questions=[];
+
       const gameOptions = {
         // Total rounds
         rounds: defaultGameOptions.rounds,
       };
 
       const pickedPlayers = pickPlayers(lobbies.get(lobbyName), gameOptions.rounds);
-      console.log('ALLLICKEDLAYERS', pickedPlayers)
+      lobbies.get(lobbyName).hotseatPairs=pickedPlayers as [Player,Player][];
       onRoundStart(lobbyName, pickedPlayers[0]);
 
       return {
@@ -196,9 +203,9 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {number} answer
    */
   GameSock.onAnswerQuestions((lobbyName, socketId, questionNumber, answer,roundNum) => {
-    console.log('question answered!', socketId, questionNumber, answer)
+    console.log('question answered!', socketId, questionNumber, answer, roundNum)
     // Check which positin in the current hotseat the dude is in
-    const hotseatPosition = lobbies.get(lobbyName).hotseatPairs[roundNum].findIndex(
+    const hotseatPosition = lobbies.get(lobbyName).hotseatPairs[roundNum-1].findIndex(
       (player) => player.id === socketId
     );
     // If player is not in hotseat they go bye bye
@@ -225,11 +232,11 @@ export const gameController = (app: Application, https: boolean) => {
       lobbies.get(lobbyName).questions[questionIndex].answers[1]
     ) {
       // Give points to the hotseatPlayers
-      addPoints(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum][0].id, 100);
-      addPoints(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum][1].id, 100);
+      addPoints(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum-1][0].id, defaultGameOptions.points);
+      addPoints(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum-1][1].id, defaultGameOptions.points);
     } else {
       // if not, give the audience points
-      addPoints(lobbyName, lobbies.get(lobbyName).questions[questionIndex].playerId, 100);
+      addPoints(lobbyName, lobbies.get(lobbyName).questions[questionIndex].playerId, defaultGameOptions.points);
     }
 
     return lobbies.get(lobbyName).questions[questionIndex].answers;
@@ -242,14 +249,14 @@ export const gameController = (app: Application, https: boolean) => {
    */
   GameSock.onRoundEnd((lobbyName,roundNum) => {
     // const lIndex = findLobbyIndex(lobbyName);
-    console.log('checking if theres another round', lobbies.get(lobbyName).round, defaultGameOptions.rounds )
+    console.log('checking if theres another round', lobbies.get(lobbyName).round, defaultGameOptions.rounds,'ROund over?: ',lobbies.get(lobbyName).round < defaultGameOptions.rounds )
     if (lobbies.get(lobbyName).round < defaultGameOptions.rounds) {
       // Next round
       lobbies.get(lobbyName).round++;
       lobbies.get(lobbyName).questions = [];
 
       setTimeout(() => {
-        console.log("starting new round");
+        console.log("starting new round", roundNum, "picked players!", lobbies.get(lobbyName).hotseatPairs[roundNum]);
         onRoundStart(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum], lobbies.get(lobbyName).round);
       },
       defaultGameOptions.timeBetweenRounds);
