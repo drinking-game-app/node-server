@@ -37,7 +37,7 @@ const defaultGameOptions: GameOptions = {
   rounds: 1,
   numQuestions: 3,
   timeToWriteQuestions: 30,
-  timeToAnswerQuestions: 5,
+  timeToAnswerQuestions: 7,
   timeBetweenQuestions: 10,
   timeBetweenRounds: 10000,
   points: 1
