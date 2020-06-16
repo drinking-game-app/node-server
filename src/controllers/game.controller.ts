@@ -60,6 +60,7 @@ export const gameController = (app: Application, https: boolean) => {
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify([...lobbies]));
   })
+
   /**
    * Check if the user is authenticated
    * before allowing them to continue
