@@ -17,6 +17,8 @@
 import config from '../config/config'
 import app from './express'
 import mongoose from 'mongoose'
+import Session from 'express-session'
+
 
 /**
  * Mongoose Connection configurations
@@ -44,6 +46,7 @@ mongoose.connect(config.mongoUri, options)
 mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${config.mongoUri}`)
 })
+
 
 /**
  * Listen on the specified port, and for any errors
