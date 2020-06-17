@@ -35,10 +35,10 @@ interface GameOptions {
 
 const defaultGameOptions: GameOptions = {
   rounds: 3,
-  numQuestions: 3,
-  timeToWriteQuestions: 30,
-  timeToAnswerQuestions: 7,
-  timeBetweenQuestions: 10,
+  numQuestions: 2,
+  timeToWriteQuestions: 45,
+  timeToAnswerQuestions: 5,
+  timeBetweenQuestions: 8,
   timeBetweenRounds: 10000,
   points: 1
 };
@@ -438,7 +438,7 @@ export const gameController = (app: Application, https: boolean) => {
     // trim
     if(resultIndexPairs.length<pairs){
       console.error('Random pair picker fucked up')
-      
+
     }
     resultIndexPairs.length=pairs
 
