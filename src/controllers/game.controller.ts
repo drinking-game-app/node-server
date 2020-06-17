@@ -428,8 +428,9 @@ export const gameController = (app: Application, https: boolean) => {
       resultIndexArray= shuffle(array)
     }else {
       // Account for when the pairs cannot be directly made from a multiple of all players
-        for(let i=Math.ceil(pairs/array.length);i--;){
-          resultIndexArray=[...resultIndexArray, shuffle(array)] as number[]
+        for(let i=Math.ceil(array.length/pairs);i--;){
+          resultIndexArray=[...resultIndexArray, ...shuffle(array)]
+          console.log("Adding another set of players")
         }
     }
     // Pair
