@@ -3,3 +3,6 @@ node_modules/
 dist/
 *.p8
 package-lock.json
+*.pem
+oldcerts
+client.csr
