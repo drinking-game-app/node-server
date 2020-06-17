@@ -146,13 +146,14 @@ export const gameController = (app: Application, https: boolean) => {
       lobbies.get(lobbyName).round= 1 as 0;
       lobbies.get(lobbyName).questions=[];
 
+
       const gameOptions = {
         // Total rounds
         rounds: defaultGameOptions.rounds,
       };
 
       const pickedPlayers = pickPlayers(lobbies.get(lobbyName), gameOptions.rounds);
-      lobbies.get(lobbyName).hotseatPairs=pickedPlayers as [Player,Player][];
+      lobbies.get(lobbyName).hotseatPairs = pickedPlayers as [Player,Player][];
       onRoundStart(lobbyName, pickedPlayers[0]);
 
       return {
