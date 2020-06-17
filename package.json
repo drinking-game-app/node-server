@@ -24,7 +24,7 @@
   "author": "Eoan O'Dea",
   "license": "MIT",
   "dependencies": {
-    "@rossmacd/gamesock-server": "0.2.1",
+    "@rossmacd/gamesock-server": "0.2.2",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "connect-redis": "^4.0.4",

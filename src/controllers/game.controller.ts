@@ -34,7 +34,7 @@ interface GameOptions {
 }
 
 const defaultGameOptions: GameOptions = {
-  rounds: 1,
+  rounds: 3,
   numQuestions: 3,
   timeToWriteQuestions: 30,
   timeToAnswerQuestions: 7,
@@ -428,7 +428,7 @@ export const gameController = (app: Application, https: boolean) => {
       resultIndexArray= shuffle(array)
     }else {
       // Account for when the pairs cannot be directly made from a multiple of all players
-        for(let i=Math.round(pairs/array.length);i--;){
+        for(let i=Math.ceil(pairs/array.length);i--;){
           resultIndexArray=[...resultIndexArray, shuffle(array)] as number[]
         }
     }
@@ -436,7 +436,10 @@ export const gameController = (app: Application, https: boolean) => {
     const resultIndexPairs=pair(resultIndexArray as number[])
     console.log('Pairs',resultIndexPairs)
     // trim
-    if(resultIndexPairs.length<pairs)console.error('Random pair picker fucked up')
+    if(resultIndexPairs.length<pairs){
+      console.error('Random pair picker fucked up')
+      
+    }
     resultIndexPairs.length=pairs
 
     // [[1,2],[3,4]]
