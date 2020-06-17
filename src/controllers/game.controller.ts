@@ -423,7 +423,7 @@ export const gameController = (app: Application, https: boolean) => {
 
 
   const shuffleAndPair = (array:number[],pairs:number,players:Player[]):Player[][]=>{
-    let resultIndexArray:number[];
+    let resultIndexArray:number[]=[];
     if(pairs<(array.length/2)){
       resultIndexArray= shuffle(array)
     }else {
