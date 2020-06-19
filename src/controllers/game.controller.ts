@@ -18,6 +18,7 @@ import GameSock, {
   Player,
   Question,
   RoundOptions,
+  onClaimSocket,
 } from "@rossmacd/gamesock-server";
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
@@ -297,13 +298,24 @@ export const gameController = (app: Application, https: boolean) => {
   })
 
 
+  onClaimSocket((lobbyName:string,playerId:string,ipAddress:string)=>{
+    if(lobbies.has(lobbyName)&&lobbies.get(lobbyName).unclaimedIps.includes(ipAddress)){
+      const playerIndex=findPlayerIndex(lobbyName,playerId)
+      if(playerIndex!==-1){
+        lobbies.get(lobbyName).players[playerIndex] = {...lobbies.get(lobbyName).players[playerIndex], id:playerId}
+        return true
+      }
+    }
+    return false
+  })
+
   /**
    * When a player disconnects from a lobby
    *
    * @param {string} lobbyName
    * @param {string} playerdId
    */
-  GameSock.onDisconnect((lobbyName: string, playerdId: string)=>{
+  GameSock.onDisconnect((lobbyName: string, playerdId: string,ipAddress:string)=>{
     if(typeof lobbyName !=='string'){
       return
     }
@@ -316,6 +328,9 @@ export const gameController = (app: Application, https: boolean) => {
       console.log('deleting' + lobbyName);
       deleteLobby(lobbyName)
       GameSock.kickAll(lobbyName)
+    }else{
+      console.log(`IpAddress: ${ipAddress}`)
+      lobbies.get(lobbyName).unclaimedIps.push(ipAddress)
     }
   })
 
