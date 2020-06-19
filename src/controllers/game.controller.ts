@@ -19,6 +19,7 @@ import GameSock, {
   Question,
   RoundOptions,
   onClaimSocket,
+  updatePlayers,
 } from "@rossmacd/gamesock-server";
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
@@ -298,11 +299,25 @@ export const gameController = (app: Application, https: boolean) => {
   })
 
 
-  onClaimSocket((lobbyName:string,playerId:string,ipAddress:string)=>{
-    if(lobbies.has(lobbyName)&&lobbies.get(lobbyName).unclaimedIps.includes(ipAddress)){
+  onClaimSocket((lobbyName:string,playerId:string,ipAddress:string,newID:string)=>{
+    console.log("Claiming socket")
+    if(lobbies.has(lobbyName) && lobbies.get(lobbyName).unclaimedIps.includes(ipAddress)){
+      console.log('Making players check')
       const playerIndex=findPlayerIndex(lobbyName,playerId)
       if(playerIndex!==-1){
+        console.log(`Success switching`,{...lobbies.get(lobbyName).players[playerIndex], id:newID})
         lobbies.get(lobbyName).players[playerIndex] = {...lobbies.get(lobbyName).players[playerIndex], id:playerId}
+        const oldIndex=findPlayerIndex(lobbyName,newID)
+        if(oldIndex!==-1){
+          lobbies.get(lobbyName).players.splice(oldIndex,1)
+          updatePlayers(lobbyName,lobbies.get(lobbyName).players)
+        }
+        const ipIndex=lobbies.get(lobbyName).unclaimedIps.findIndex((ip)=>ip===ipAddress)
+        if(ipIndex===-1){
+          return false
+        }
+        lobbies.get(lobbyName).unclaimedIps.splice(ipIndex,1)
+        console.log('Switcho',lobbies.get(lobbyName).players[playerIndex])
         return true
       }
     }
