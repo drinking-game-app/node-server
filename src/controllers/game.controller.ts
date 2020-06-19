@@ -22,6 +22,7 @@ import GameSock, {
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
 import _ from 'underscore'
+import {readFileSync} from 'fs'
 
 interface GameOptions {
   rounds: number;
@@ -291,7 +292,8 @@ export const gameController = (app: Application, https: boolean) => {
    * should return random
    */
   GameSock.onNoAnswer(()=>{
-    return "Who's more likely to not answer a question"
+    const allQuestions:string[]=JSON.parse(readFileSync('../data/Questions.json',{encoding:'utf8'})).questionList
+    return _.sample(allQuestions)
   })
 
 
