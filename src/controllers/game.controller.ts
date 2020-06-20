@@ -24,7 +24,10 @@ import GameSock, {
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
 import _ from 'underscore'
-import {readFileSync} from 'fs'
+import fs from 'fs';
+import {readFileSync,readFile} from 'fs'
+import http from 'http';
+import https from 'https';
 
 interface GameOptions {
   rounds: number;
@@ -48,6 +51,12 @@ const defaultGameOptions: GameOptions = {
 
 let lobbies: Map<string,Lobby> = new Map();
 
+
+
+
+
+
+
 /**
  * Main Game Controller
  *
@@ -56,8 +65,8 @@ let lobbies: Map<string,Lobby> = new Map();
  * @param {Application} app
  * @param {boolean} https
  */
-export const gameController = (app: Application, https: boolean) => {
-  app.get('/',(req,res)=>{
+export const gameController = (app: Application) => {
+    app.get('/',(req,res)=>{
     app.set('json spaces', 4)
     res.type('json')
     res.setHeader('Content-Type', 'application/json');
@@ -501,10 +510,25 @@ const pair=(arr:number[], size = 2):number[][]=> {
   return arr.map((x, i) => i % size === 0 && arr.slice(i, i + size)).filter(x => x)
 }
 
+app=GameSock.startSyncServer(app)
+
+const httpsOn=false;
+let server;
+
+// Choosing https or not - untested
+if (httpsOn) {
+  server = https.createServer({
+    key: fs.readFileSync('serverKeyPath'),
+    cert: fs.readFileSync('serverCertPath'),
+  });
+} else {
+  server = new http.Server(app);
+}
+server=GameSock.sockServer(server);
 
   /**
    *
    * Return the socket server to express
    */
-  return GameSock.sockServer(app, https);
+  return server
 };
