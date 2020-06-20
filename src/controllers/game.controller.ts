@@ -18,10 +18,16 @@ import GameSock, {
   Player,
   Question,
   RoundOptions,
+  onClaimSocket,
+  updatePlayers,
 } from "@rossmacd/gamesock-server";
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
 import _ from 'underscore'
+import fs from 'fs';
+import {readFileSync,readFile} from 'fs'
+import http from 'http';
+import https from 'https';
 
 interface GameOptions {
   rounds: number;
@@ -45,6 +51,12 @@ const defaultGameOptions: GameOptions = {
 
 let lobbies: Map<string,Lobby> = new Map();
 
+
+
+
+
+
+
 /**
  * Main Game Controller
  *
@@ -53,8 +65,8 @@ let lobbies: Map<string,Lobby> = new Map();
  * @param {Application} app
  * @param {boolean} https
  */
-export const gameController = (app: Application, https: boolean) => {
-  app.get('/',(req,res)=>{
+export const gameController = (app: Application) => {
+    app.get('/',(req,res)=>{
     app.set('json spaces', 4)
     res.type('json')
     res.setHeader('Content-Type', 'application/json');
@@ -291,9 +303,35 @@ export const gameController = (app: Application, https: boolean) => {
    * should return random
    */
   GameSock.onNoAnswer(()=>{
-    return "Who's more likely to not answer a question"
+    const allQuestions:string[]=JSON.parse(readFileSync('../data/Questions.json',{encoding:'utf8'})).questionList
+    return _.sample(allQuestions)
   })
 
+
+  onClaimSocket((lobbyName:string,playerId:string,ipAddress:string,newID:string)=>{
+    console.log("Claiming socket")
+    if(lobbies.has(lobbyName) && lobbies.get(lobbyName).unclaimedIps.includes(ipAddress)){
+      console.log('Making players check')
+      const playerIndex=findPlayerIndex(lobbyName,playerId)
+      if(playerIndex!==-1){
+        console.log(`Success switching`,{...lobbies.get(lobbyName).players[playerIndex], id:newID})
+        lobbies.get(lobbyName).players[playerIndex] = {...lobbies.get(lobbyName).players[playerIndex], id:playerId}
+        const oldIndex=findPlayerIndex(lobbyName,newID)
+        if(oldIndex!==-1){
+          lobbies.get(lobbyName).players.splice(oldIndex,1)
+          updatePlayers(lobbyName,lobbies.get(lobbyName).players)
+        }
+        const ipIndex=lobbies.get(lobbyName).unclaimedIps.findIndex((ip)=>ip===ipAddress)
+        if(ipIndex===-1){
+          return false
+        }
+        lobbies.get(lobbyName).unclaimedIps.splice(ipIndex,1)
+        console.log('Switcho',lobbies.get(lobbyName).players[playerIndex])
+        return true
+      }
+    }
+    return false
+  })
 
   /**
    * When a player disconnects from a lobby
@@ -301,7 +339,7 @@ export const gameController = (app: Application, https: boolean) => {
    * @param {string} lobbyName
    * @param {string} playerdId
    */
-  GameSock.onDisconnect((lobbyName: string, playerdId: string)=>{
+  GameSock.onDisconnect((lobbyName: string, playerdId: string,ipAddress:string)=>{
     if(typeof lobbyName !=='string'){
       return
     }
@@ -314,6 +352,9 @@ export const gameController = (app: Application, https: boolean) => {
       console.log('deleting' + lobbyName);
       deleteLobby(lobbyName)
       GameSock.kickAll(lobbyName)
+    }else{
+      console.log(`IpAddress: ${ipAddress}`)
+      lobbies.get(lobbyName).unclaimedIps.push(ipAddress)
     }
   })
 
@@ -469,10 +510,25 @@ const pair=(arr:number[], size = 2):number[][]=> {
   return arr.map((x, i) => i % size === 0 && arr.slice(i, i + size)).filter(x => x)
 }
 
+app=GameSock.startSyncServer(app)
+
+const httpsOn=false;
+let server;
+
+// Choosing https or not - untested
+if (httpsOn) {
+  server = https.createServer({
+    key: fs.readFileSync('serverKeyPath'),
+    cert: fs.readFileSync('serverCertPath'),
+  });
+} else {
+  server = new http.Server(app);
+}
+server=GameSock.sockServer(server);
 
   /**
    *
    * Return the socket server to express
    */
-  return GameSock.sockServer(app, https);
+  return server
 };
