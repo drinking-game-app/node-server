@@ -318,8 +318,9 @@ export const gameController = (app: Application) => {
 
 
   onClaimSocket((lobbyName:string,playerId:string,ipAddress:string,newID:string)=>{
-    console.log("Claiming socket")
-    if(lobbies.has(lobbyName) && lobbies.get(lobbyName).unclaimedIps.includes(ipAddress)){
+    console.log("Claiming socket",lobbies.has(lobbyName),ipAddress,lobbies.get(lobbyName).unclaimedIps)
+    if(lobbies.has(lobbyName) && (lobbies.get(lobbyName).unclaimedIps.includes(ipAddress) || ipAddress==='::1')){
+      if(ipAddress==='::1'){console.error('LOCALHOST CLAIMING SOCKET CONNECTION')}
       console.log('Making players check')
       const playerIndex=findPlayerIndex(lobbyName,playerId)
       if(playerIndex!==-1){
@@ -331,10 +332,10 @@ export const gameController = (app: Application) => {
           updatePlayers(lobbyName,lobbies.get(lobbyName).players)
         }
         const ipIndex=lobbies.get(lobbyName).unclaimedIps.findIndex((ip)=>ip===ipAddress)
-        if(ipIndex===-1){
+        if(ipIndex===-1 && ipAddress!=='::1'){
           return false
         }
-        lobbies.get(lobbyName).unclaimedIps.splice(ipIndex,1)
+        if(ipAddress!=='::1')lobbies.get(lobbyName).unclaimedIps.splice(ipIndex,1)
         console.log('Switcho',lobbies.get(lobbyName).players[playerIndex])
         return true
       }
