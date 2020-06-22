@@ -39,24 +39,22 @@ const getUniqueErrorMessage = (err: any) => {
  * Get the error message from error object
  */
 const getErrorMessage = (err: any) => {
-    let message = ''
 
     if (err.code) {
         switch (err.code) {
             case 11000:
             case 11001:
-                message = getUniqueErrorMessage(err)
-                break
+                return getUniqueErrorMessage(err)
             default:
-                message = 'Something went wrong'
-        }
-    } else {
-        for (const errName in err.errors) {
-            if (err.errors[errName].message) message = err.errors[errName].message
+                return 'Something went wrong'
         }
     }
 
-    return message
+    if(err.message) return err.message
+
+    for (const errName in err.errors) {
+        if (err.errors[errName].message) return err.errors[errName].message
+    }
 }
 
 export default getErrorMessage
