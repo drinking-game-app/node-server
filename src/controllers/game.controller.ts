@@ -73,6 +73,15 @@ export const gameController = (app: Application) => {
     res.end(JSON.stringify([...lobbies]));
   })
 
+  app.post('/api/gameActive',(req, res)=> {
+    // console.log('akllallalalall', req.body.id, lobbies.get(req.body.lobbyName).players.some(player=>player.id===req.body.id))
+    if(lobbies.has(req.body.lobbyName)&&lobbies.get(req.body.lobbyName).players.some(player=>player.id===req.body.id)){
+      res.send({active:true})
+    }else{
+    res.send({active:false})}
+  }
+  )
+
   /**
    * Check if the user is authenticated
    * before allowing them to continue
