@@ -290,36 +290,19 @@ export const gameController = (app: Application) => {
 
   onClaimSocket((lobbyName: string, playerId: string, ipAddress: string, newID: string) => {
     console.log('Claiming socket', lobbies.has(lobbyName), ipAddress, lobbies.get(lobbyName).unclaimedIps);
-    if (lobbies.has(lobbyName)) {
-      const oldIndex = findPlayerIndex(lobbyName, newID);
-      if (oldIndex !== -1) {
-        lobbies.get(lobbyName).players.splice(oldIndex, 1);
-      }
-      if (lobbies.get(lobbyName).unclaimedIps.includes(ipAddress) || ipAddress === '::1') {
-        if (ipAddress === '::1') {
-          console.error('LOCALHOST CLAIMING SOCKET CONNECTION');
-        }
-
-        // console.log('Making players check');
+    if (lobbies.has(lobbyName)&&(lobbies.get(lobbyName).unclaimedIps.has(playerId) && lobbies.get(lobbyName).unclaimedIps.get(playerId)===ipAddress) ) {
         const playerIndex = findPlayerIndex(lobbyName, playerId);
-
         if (playerIndex !== -1) {
           console.log(`Success switching`, { ...lobbies.get(lobbyName).players[playerIndex], id: newID });
 
           lobbies.get(lobbyName).players[playerIndex] = { ...lobbies.get(lobbyName).players[playerIndex], id: playerId };
           updatePlayers(lobbyName, lobbies.get(lobbyName).players);
-
-          const ipIndex = lobbies.get(lobbyName).unclaimedIps.findIndex((ip) => ip === ipAddress);
-          if (ipIndex === -1 && ipAddress !== '::1') {
-            return false;
-          }
-          if (ipAddress !== '::1') lobbies.get(lobbyName).unclaimedIps.splice(ipIndex, 1);
+          lobbies.get(lobbyName).unclaimedIps.delete(playerId);
           console.log('Switcho', lobbies.get(lobbyName).players[playerIndex]);
           return true;
         }
       }
       return false;
-    }
   });
 
   /**
@@ -328,7 +311,7 @@ export const gameController = (app: Application) => {
    * @param {string} lobbyName
    * @param {string} playerdId
    */
-  GameSock.onDisconnect((lobbyName: string, playerdId: string, ipAddress: string) => {
+  GameSock.onDisconnect((lobbyName: string, playerId: string, ipAddress: string) => {
     if (typeof lobbyName !== 'string') {
       return;
     }
@@ -336,7 +319,7 @@ export const gameController = (app: Application) => {
     if (!lobbies.has(lobbyName)) {
       return;
     }
-    const pIndex = findPlayerIndex(lobbyName, playerdId);
+    const pIndex = findPlayerIndex(lobbyName, playerId);
     if (pIndex === 0) {
       console.log('deleting' + lobbyName);
       deleteLobby(lobbyName);
@@ -344,7 +327,7 @@ export const gameController = (app: Application) => {
     } else {
       console.log(`IpAddress: ${ipAddress}`);
       // Allow localhost through
-      if(ipAddress !== '::1')lobbies.get(lobbyName).unclaimedIps.push(ipAddress);
+      lobbies.get(lobbyName).unclaimedIps.set(playerId, ipAddress);
     }
   });
 
