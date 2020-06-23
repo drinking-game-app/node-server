@@ -70,5 +70,5 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
 app.use("/", userRoutes);
 app.use("/", authRoutes);
 
-export default gameController(app, false);
+export default gameController(app);
 // export default app
