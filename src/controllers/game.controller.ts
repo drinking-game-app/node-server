@@ -295,7 +295,7 @@ export const gameController = (app: Application) => {
         if (playerIndex !== -1) {
           console.log(`Success switching`, { ...lobbies.get(lobbyName).players[playerIndex], id: newID });
 
-          lobbies.get(lobbyName).players[playerIndex] = { ...lobbies.get(lobbyName).players[playerIndex], id: playerId };
+          lobbies.get(lobbyName).players[playerIndex] = { ...lobbies.get(lobbyName).players[playerIndex], id: newID };
           updatePlayers(lobbyName, lobbies.get(lobbyName).players);
           lobbies.get(lobbyName).unclaimedIps.delete(playerId);
           console.log('Switcho', lobbies.get(lobbyName).players[playerIndex]);
