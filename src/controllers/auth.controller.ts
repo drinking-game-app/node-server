@@ -174,6 +174,29 @@ export const hasAuthorization = (
 };
 
 /**
+ * Get a user by their access token
+ *
+ * @param {Request} req
+ * @param {Response} res
+ */
+export const getUser = async(req: RequestMiddleware, res: Response) => {
+    /**
+     * Find a user with this email
+     */
+    const user: any = await User.findById(req.auth._id)
+
+    /**
+     * Return a 200 response with the token and user
+     */
+    return res.status(200).json(
+      handleSuccess({
+        token: req.params.token,
+        user: { name: user.name, email: user.email, _id: user._id },
+      })
+    );
+}
+
+/**
  * Verifies a login with a third party
  *
  * -Google

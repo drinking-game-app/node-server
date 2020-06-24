@@ -32,6 +32,13 @@ router.route(`${prefix}/signout/:accessToken?`)
     .get(authCtrl.requireSignin, authCtrl.signout)
 
 /**
+ * @method GET - Get a user by their token
+ */
+router.route(`${prefix}/user`)
+    .get(authCtrl.requireSignin, authCtrl.getUser)
+
+
+/**
  * @method POST - Verify a login with a third party
  */
 router.route(`${prefix}/signin/:provider/:type`)
