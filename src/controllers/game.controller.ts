@@ -467,15 +467,15 @@ export const gameController = (app: Application) => {
 
   app = GameSock.startSyncServer(app);
 
-  const httpsOn = false;
+  const httpsOn = true;
   let server;
 
   // Choosing https or not - untested
   if (httpsOn) {
     server = https.createServer({
-      key: fs.readFileSync('serverKeyPath'),
-      cert: fs.readFileSync('serverCertPath'),
-    });
+      key: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/privkey.pem'),
+      cert: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/fullchain.pem'),
+    },app);
   } else {
     server = new http.Server(app);
   }
