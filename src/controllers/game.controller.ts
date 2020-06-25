@@ -293,8 +293,7 @@ export const gameController = (app: Application) => {
     if (lobbies.has(lobbyName)&&(lobbies.get(lobbyName).unclaimedIps.has(playerId) && lobbies.get(lobbyName).unclaimedIps.get(playerId)===ipAddress) ) {
         const playerIndex = findPlayerIndex(lobbyName, playerId);
         if (playerIndex !== -1) {
-          console.log(`Success switching`, { ...lobbies.get(lobbyName).players[playerIndex], id: newID });
-
+          // console.log(`Success switching`, { ...lobbies.get(lobbyName).players[playerIndex], id: newID });
           lobbies.get(lobbyName).players[playerIndex] = { ...lobbies.get(lobbyName).players[playerIndex], id: newID };
           updatePlayers(lobbyName, lobbies.get(lobbyName).players);
           lobbies.get(lobbyName).unclaimedIps.delete(playerId);
