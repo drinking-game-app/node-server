@@ -466,7 +466,7 @@ export const gameController = (app: Application) => {
 
   app = GameSock.startSyncServer(app);
 
-  const httpsOn = true;
+  const httpsOn = process.env.HTTPS||false;
   let server;
 
   // Choosing https or not - untested
