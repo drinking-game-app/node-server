@@ -43,7 +43,11 @@ const defaultGameOptions: GameOptions = {
   points: 1,
 };
 
-let lobbies: Map<string, Lobby> = new Map();
+interface CustomLobby extends Lobby{
+  ready:boolean
+}
+
+const lobbies: Map<string, CustomLobby> = new Map();
 
 /**
  * Main Game Controller
@@ -54,15 +58,18 @@ let lobbies: Map<string, Lobby> = new Map();
  * @param {boolean} https
  */
 export const gameController = (app: Application) => {
+  if(process.env.NODE_ENV==="development"){
   app.get('/', (req, res) => {
     app.set('json spaces', 4);
     res.type('json');
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify([...lobbies]));
-  });
+  });}
 
+  /**
+   * This route checks if a game is still in progress
+   */
   app.post('/api/gameActive', (req, res) => {
-    // console.log('akllallalalall', req.body.id, lobbies.get(req.body.lobbyName).players.some(player=>player.id===req.body.id))
     if (lobbies.has(req.body.lobbyName) && lobbies.get(req.body.lobbyName).players.some((player) => player.id === req.body.id)) {
       res.send({ active: true });
     } else {
@@ -102,8 +109,8 @@ export const gameController = (app: Application) => {
      */
     if (lobbies.has(lobby.name)) return false;
     console.log('lobby created', lobby);
-
-    lobbies.set(lobby.name, lobby);
+    (lobby as CustomLobby).ready =false;
+    lobbies.set(lobby.name, lobby as CustomLobby);
     return true;
   });
 
@@ -146,8 +153,24 @@ export const gameController = (app: Application) => {
   // Start the game
   GameSock.onStartGame((lobbyName: string, socketId: string) => {
     console.log('starting GAMEEEE', lobbyName, socketId);
+    // Remove players who have disconnected:
+    if(lobbies.has(lobbyName)&&lobbies.get(lobbyName).unclaimedIps.size>0){
+      lobbies.get(lobbyName).unclaimedIps.forEach((value, key, map)=>{
+        lobbies.get(lobbyName).players=lobbies.get(lobbyName).players.filter(player=>player.id!==key)
+        console.log("Filtered",lobbies.get(lobbyName).players);
+        lobbies.get(lobbyName).unclaimedIps.delete(key)
+      })
+      console.log("hell nag",lobbies.get(lobbyName).players)
+      updatePlayers(lobbyName,lobbies.get(lobbyName).players)
+      return {
+        ok: false,
+        gameSettings: null,
+      };
+    }
+
+
     // Check if we can start game
-    if (lobbies.get(lobbyName).players.length > 2 && socketId === lobbies.get(lobbyName).players[0].id) {
+    if ((lobbies.has(lobbyName)&&lobbies.get(lobbyName).players.length > 2 && socketId === lobbies.get(lobbyName).players[0].id)) {
       lobbies.get(lobbyName).round = 1 as 0;
       lobbies.get(lobbyName).questions = [];
 
@@ -182,17 +205,12 @@ export const gameController = (app: Application) => {
    * @param roundOptions
    */
   GameSock.onReturnQuestions((lobbyName: string, questions: Question[], roundOptions) => {
+    if(!lobbies.has(lobbyName))return[]
     // Randomize question order
     const newQuestionList = shuffleArray(questions);
     console.log('return questions!!!dgnsaiogndsaiogdns', newQuestionList);
     // Store the questions
     lobbies.get(lobbyName).questions = newQuestionList;
-
-    // TODO move to library - should be done
-    // for (const question of questions) {
-    //   question.answers = [];
-    // }
-
     return newQuestionList;
   });
 
@@ -207,6 +225,7 @@ export const gameController = (app: Application) => {
    * @param {number} answer
    */
   GameSock.onAnswerQuestions((lobbyName, socketId, questionNumber, answer, roundNum) => {
+    if(!lobbies.has(lobbyName))return
     console.log('question answered!', socketId, questionNumber, answer, roundNum);
     // Check which positin in the current hotseat the dude is in
     const hotseatPosition = lobbies.get(lobbyName).hotseatPairs[roundNum - 1].findIndex((player) => player.id === socketId);
@@ -223,7 +242,7 @@ export const gameController = (app: Application) => {
    * @param {number} questionIndex
    */
   GameSock.onRequestAnswer((lobbyName, questionIndex, roundNum) => {
-    // const lIndex = findLobbyIndex(lobbyName);
+    if(!lobbies.has(lobbyName))return[]
 
     // If both players have answered, and gave the same answer, give them points
     if (lobbies.get(lobbyName).questions[questionIndex].answers.length === 2 && lobbies.get(lobbyName).questions[questionIndex].answers[0] === lobbies.get(lobbyName).questions[questionIndex].answers[1]) {
@@ -244,26 +263,19 @@ export const gameController = (app: Application) => {
    * @param {string} lobbyName
    */
   GameSock.onRoundEnd((lobbyName, roundNum) => {
-    // const lIndex = findLobbyIndex(lobbyName);
+    if(!lobbies.has(lobbyName))return
     console.log('checking if theres another round', lobbies.get(lobbyName).round, defaultGameOptions.rounds, 'ROund over?: ', lobbies.get(lobbyName).round < defaultGameOptions.rounds);
     if (lobbies.get(lobbyName).round < defaultGameOptions.rounds) {
       // Next round
       lobbies.get(lobbyName).round++;
       lobbies.get(lobbyName).questions = [];
+      lobbies.get(lobbyName).ready=true;
 
-      setTimeout(() => {
-        console.log('starting new round', roundNum, 'picked players!', lobbies.get(lobbyName).hotseatPairs[roundNum]);
-        onRoundStart(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum], lobbies.get(lobbyName).round);
-      }, defaultGameOptions.timeBetweenRounds);
+      // setTimeout(() => {
+      //   console.log('starting new round', roundNum, 'picked players!', lobbies.get(lobbyName).hotseatPairs[roundNum]);
+      //   onRoundStart(lobbyName, lobbies.get(lobbyName).hotseatPairs[roundNum], lobbies.get(lobbyName).round);
+      // }, defaultGameOptions.timeBetweenRounds);
     }
-    // } else {
-    // End game
-
-    // setTimeout(() => {
-    //   console.log("Game done");
-    //   deleteLobby(lIndex);
-    // }, 5000);
-    // }
   });
 
   /**
@@ -272,10 +284,13 @@ export const gameController = (app: Application) => {
    * Will either result in the next round starting or the game restarting if its already over
    */
   GameSock.onContinueGame((lobbyName: string, socketID: string) => {
-    if (socketID === lobbies.get(lobbyName).players[0].id) {
+    if(!lobbies.has(lobbyName))return[]
+    if (lobbies.get(lobbyName).ready &&socketID === lobbies.get(lobbyName).players[0].id && lobbies.get(lobbyName).questions.length===0&&lobbies.get(lobbyName).round <= defaultGameOptions.rounds) {
       // Continue the game
       // if(roundOver && round !==roundnums){startNextRound()}
       // if (roundOver){restartGame()}
+      lobbies.get(lobbyName).ready=false;
+        onRoundStart(lobbyName, lobbies.get(lobbyName).hotseatPairs[lobbies.get(lobbyName).round-1], lobbies.get(lobbyName).round);
     }
   });
 
@@ -311,11 +326,7 @@ export const gameController = (app: Application) => {
    * @param {string} playerdId
    */
   GameSock.onDisconnect((lobbyName: string, playerId: string, ipAddress: string) => {
-    if (typeof lobbyName !== 'string') {
-      return;
-    }
-    // const lIndex=findLobbyIndex(lobbyName)
-    if (!lobbies.has(lobbyName)) {
+    if(!lobbies.has(lobbyName)||typeof lobbyName !== 'string') {
       return;
     }
     const pIndex = findPlayerIndex(lobbyName, playerId);
@@ -323,7 +334,7 @@ export const gameController = (app: Application) => {
       console.log('deleting' + lobbyName);
       deleteLobby(lobbyName);
       GameSock.kickAll(lobbyName);
-    } else {
+    } else if(pIndex!==-1){
       console.log(`IpAddress: ${ipAddress}`);
       // Allow localhost through
       lobbies.get(lobbyName).unclaimedIps.set(playerId, ipAddress);
@@ -331,6 +342,7 @@ export const gameController = (app: Application) => {
   });
 
   const onRoundStart = async (lobbyName: string, pickedPlayers: Player[], round: number = 1) => {
+    if(!lobbies.has(lobbyName))return
     console.log('round number', round);
     console.log('pickedplayers', pickedPlayers);
     GameSock.startRound(lobbyName, {
@@ -353,6 +365,18 @@ export const gameController = (app: Application) => {
     console.log('Deleteing the lobby');
     lobbies.delete(lobbyName);
   };
+
+  const removeFromLobby = async(lobbyName: string,playerId:string) =>{
+    if(lobbies.has(lobbyName)&& lobbies.get(lobbyName).players.some(player=>player.id===playerId) ){
+      const pIndex =findPlayerIndex(lobbyName,playerId);
+      if(pIndex!==-1){
+        lobbies.get(lobbyName).players.splice(pIndex)
+      }
+      if(lobbies.get(lobbyName).unclaimedIps.has(playerId)){
+        lobbies.get(lobbyName).unclaimedIps.delete(playerId)
+      }
+    }
+  }
 
   /**
    * Adds points to a specific player
@@ -396,6 +420,7 @@ export const gameController = (app: Application) => {
    * @return {number} index
    */
   const findPlayerIndex = (lobbyName: string, playerId: string): number => {
+    if( !lobbies.has(lobbyName)) return-1
     return lobbies.get(lobbyName).players.findIndex((player: Player) => playerId === player.id);
   };
 
@@ -407,16 +432,17 @@ export const gameController = (app: Application) => {
    * @return {number} index
    */
   const findPlayerIndexByName = (lobbyName: string, playerName: string): number => {
+    if(!lobbies.has(lobbyName)) return-1
     return lobbies.get(lobbyName).players.findIndex((player: Player) => playerName === player.name);
   };
 
   /**
    * Delete Lobbies for testing
    */
-  app.get('/api/deleteLobby', (req, res) => {
-    lobbies = new Map();
-    res.status(200).json('👺');
-  });
+  // app.get('/api/deleteLobby', (req, res) => {
+  //   lobbies = new Map();
+  //   res.status(200).json('👺');
+  // });
 
   const shuffleAndPair = (array: number[], pairs: number, players: Player[]): Player[][] => {
     let resultIndexArray: number[] = [];
@@ -466,7 +492,8 @@ export const gameController = (app: Application) => {
 
   app = GameSock.startSyncServer(app);
 
-  const httpsOn = process.env.HTTPS||false;
+  // const httpsOn = process.env.HTTPS||false;
+  const httpsOn = false;
   let server;
 
   // Choosing https or not - untested
