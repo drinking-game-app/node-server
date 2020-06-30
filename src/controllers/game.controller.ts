@@ -109,8 +109,9 @@ export const gameController = (app: Application) => {
      */
     if (lobbies.has(lobby.name)) return false;
     console.log('lobby created', lobby);
-    (lobby as CustomLobby).ready =false;
-    lobbies.set(lobby.name, lobby as CustomLobby);
+    // Convert to extended version of the lobby
+    const customLobby:CustomLobby = {...lobby, ready:true}
+    lobbies.set(lobby.name, customLobby);
     return true;
   });
 
@@ -492,12 +493,12 @@ export const gameController = (app: Application) => {
 
   app = GameSock.startSyncServer(app);
 
-  // const httpsOn = process.env.HTTPS||false;
-  const httpsOn = false;
+  const httpsOn = process.env.HTTPS||false;
+  // const httpsOn = false;
   let server;
 
   // Choosing https or not - untested
-  if (httpsOn) {
+  if (httpsOn==="true") {
     server = https.createServer({
       key: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/privkey.pem'),
       cert: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/fullchain.pem'),
