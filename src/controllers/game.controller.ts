@@ -21,7 +21,7 @@ import fs from 'fs';
 import { readFileSync, readFile } from 'fs';
 import http from 'http';
 import https from 'https';
-import {questionList as allQuestions} from '../data/Questions.json'
+import { questionList as allQuestions } from '../data/Questions.json';
 
 interface GameOptions {
   rounds: number;
@@ -43,8 +43,8 @@ const defaultGameOptions: GameOptions = {
   points: 1,
 };
 
-interface CustomLobby extends Lobby{
-  ready:boolean
+interface CustomLobby extends Lobby {
+  ready: boolean;
 }
 
 const lobbies: Map<string, CustomLobby> = new Map();
@@ -58,13 +58,14 @@ const lobbies: Map<string, CustomLobby> = new Map();
  * @param {boolean} https
  */
 export const gameController = (app: Application) => {
-  if(process.env.NODE_ENV==="development"){
-  app.get('/', (req, res) => {
-    app.set('json spaces', 4);
-    res.type('json');
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify([...lobbies]));
-  });}
+  if (process.env.NODE_ENV === 'development') {
+    app.get('/', (req, res) => {
+      app.set('json spaces', 4);
+      res.type('json');
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify([...lobbies]));
+    });
+  }
 
   /**
    * This route checks if a game is still in progress
@@ -110,7 +111,7 @@ export const gameController = (app: Application) => {
     if (lobbies.has(lobby.name)) return false;
     console.log('lobby created', lobby);
     // Convert to extended version of the lobby
-    const customLobby:CustomLobby = {...lobby, ready:true}
+    const customLobby: CustomLobby = { ...lobby, ready: true };
     lobbies.set(lobby.name, customLobby);
     return true;
   });
@@ -123,7 +124,7 @@ export const gameController = (app: Application) => {
    */
   GameSock.onLobbyJoin((lobbyName: string, player: Player) => {
     let returnLobbies: Player[] = [];
-    if (lobbies.has(lobbyName) && findPlayerIndexByName(lobbyName, player.name) === -1) {
+    if (lobbies.has(lobbyName) && findPlayerIndexByName(lobbyName, player.name) === -1 && lobbies.get(lobbyName).ready && lobbies.get(lobbyName).round === 0) {
       lobbies.get(lobbyName).players.push(player);
       returnLobbies = lobbies.get(lobbyName).players;
     } else GameSock.throwToRoom(lobbyName, 'Player is already in this lobby');
@@ -155,23 +156,22 @@ export const gameController = (app: Application) => {
   GameSock.onStartGame((lobbyName: string, socketId: string) => {
     console.log('starting GAMEEEE', lobbyName, socketId);
     // Remove players who have disconnected:
-    if(lobbies.has(lobbyName)&&lobbies.get(lobbyName).unclaimedIps.size>0){
-      lobbies.get(lobbyName).unclaimedIps.forEach((value, key, map)=>{
-        lobbies.get(lobbyName).players=lobbies.get(lobbyName).players.filter(player=>player.id!==key)
-        console.log("Filtered",lobbies.get(lobbyName).players);
-        lobbies.get(lobbyName).unclaimedIps.delete(key)
-      })
-      console.log("hell nag",lobbies.get(lobbyName).players)
-      updatePlayers(lobbyName,lobbies.get(lobbyName).players)
+    if (lobbies.has(lobbyName) && lobbies.get(lobbyName).unclaimedIps.size > 0) {
+      lobbies.get(lobbyName).unclaimedIps.forEach((value, key, map) => {
+        lobbies.get(lobbyName).players = lobbies.get(lobbyName).players.filter((player) => player.id !== key);
+        console.log('Filtered', lobbies.get(lobbyName).players);
+        lobbies.get(lobbyName).unclaimedIps.delete(key);
+      });
+      console.log('hell nag', lobbies.get(lobbyName).players);
+      updatePlayers(lobbyName, lobbies.get(lobbyName).players);
       return {
         ok: false,
         gameSettings: null,
       };
     }
 
-
     // Check if we can start game
-    if ((lobbies.has(lobbyName)&&lobbies.get(lobbyName).players.length > 2 && socketId === lobbies.get(lobbyName).players[0].id)) {
+    if (lobbies.has(lobbyName) && lobbies.get(lobbyName).players.length > 2 && socketId === lobbies.get(lobbyName).players[0].id) {
       lobbies.get(lobbyName).round = 1 as 0;
       lobbies.get(lobbyName).questions = [];
 
@@ -206,7 +206,7 @@ export const gameController = (app: Application) => {
    * @param roundOptions
    */
   GameSock.onReturnQuestions((lobbyName: string, questions: Question[], roundOptions) => {
-    if(!lobbies.has(lobbyName))return[]
+    if (!lobbies.has(lobbyName)) return [];
     // Randomize question order
     const newQuestionList = shuffleArray(questions);
     console.log('return questions!!!dgnsaiogndsaiogdns', newQuestionList);
@@ -226,7 +226,7 @@ export const gameController = (app: Application) => {
    * @param {number} answer
    */
   GameSock.onAnswerQuestions((lobbyName, socketId, questionNumber, answer, roundNum) => {
-    if(!lobbies.has(lobbyName))return
+    if (!lobbies.has(lobbyName)) return;
     console.log('question answered!', socketId, questionNumber, answer, roundNum);
     // Check which positin in the current hotseat the dude is in
     const hotseatPosition = lobbies.get(lobbyName).hotseatPairs[roundNum - 1].findIndex((player) => player.id === socketId);
@@ -243,7 +243,7 @@ export const gameController = (app: Application) => {
    * @param {number} questionIndex
    */
   GameSock.onRequestAnswer((lobbyName, questionIndex, roundNum) => {
-    if(!lobbies.has(lobbyName))return[]
+    if (!lobbies.has(lobbyName)) return [];
 
     // If both players have answered, and gave the same answer, give them points
     if (lobbies.get(lobbyName).questions[questionIndex].answers.length === 2 && lobbies.get(lobbyName).questions[questionIndex].answers[0] === lobbies.get(lobbyName).questions[questionIndex].answers[1]) {
@@ -264,13 +264,13 @@ export const gameController = (app: Application) => {
    * @param {string} lobbyName
    */
   GameSock.onRoundEnd((lobbyName, roundNum) => {
-    if(!lobbies.has(lobbyName))return
+    if (!lobbies.has(lobbyName)) return;
     console.log('checking if theres another round', lobbies.get(lobbyName).round, defaultGameOptions.rounds, 'ROund over?: ', lobbies.get(lobbyName).round < defaultGameOptions.rounds);
     if (lobbies.get(lobbyName).round < defaultGameOptions.rounds) {
       // Next round
       lobbies.get(lobbyName).round++;
       lobbies.get(lobbyName).questions = [];
-      lobbies.get(lobbyName).ready=true;
+      lobbies.get(lobbyName).ready = true;
 
       // setTimeout(() => {
       //   console.log('starting new round', roundNum, 'picked players!', lobbies.get(lobbyName).hotseatPairs[roundNum]);
@@ -285,13 +285,13 @@ export const gameController = (app: Application) => {
    * Will either result in the next round starting or the game restarting if its already over
    */
   GameSock.onContinueGame((lobbyName: string, socketID: string) => {
-    if(!lobbies.has(lobbyName))return[]
-    if (lobbies.get(lobbyName).ready &&socketID === lobbies.get(lobbyName).players[0].id && lobbies.get(lobbyName).questions.length===0&&lobbies.get(lobbyName).round <= defaultGameOptions.rounds) {
+    if (!lobbies.has(lobbyName)) return [];
+    if (lobbies.get(lobbyName).ready && socketID === lobbies.get(lobbyName).players[0].id && lobbies.get(lobbyName).questions.length === 0 && lobbies.get(lobbyName).round <= defaultGameOptions.rounds) {
       // Continue the game
       // if(roundOver && round !==roundnums){startNextRound()}
       // if (roundOver){restartGame()}
-      lobbies.get(lobbyName).ready=false;
-        onRoundStart(lobbyName, lobbies.get(lobbyName).hotseatPairs[lobbies.get(lobbyName).round-1], lobbies.get(lobbyName).round);
+      lobbies.get(lobbyName).ready = false;
+      onRoundStart(lobbyName, lobbies.get(lobbyName).hotseatPairs[lobbies.get(lobbyName).round - 1], lobbies.get(lobbyName).round);
     }
   });
 
@@ -306,18 +306,18 @@ export const gameController = (app: Application) => {
 
   onClaimSocket((lobbyName: string, playerId: string, ipAddress: string, newID: string) => {
     console.log('Claiming socket', lobbies.has(lobbyName), ipAddress, lobbies.get(lobbyName).unclaimedIps);
-    if (lobbies.has(lobbyName)&&(lobbies.get(lobbyName).unclaimedIps.has(playerId) && lobbies.get(lobbyName).unclaimedIps.get(playerId)===ipAddress) ) {
-        const playerIndex = findPlayerIndex(lobbyName, playerId);
-        if (playerIndex !== -1) {
-          // console.log(`Success switching`, { ...lobbies.get(lobbyName).players[playerIndex], id: newID });
-          lobbies.get(lobbyName).players[playerIndex] = { ...lobbies.get(lobbyName).players[playerIndex], id: newID };
-          updatePlayers(lobbyName, lobbies.get(lobbyName).players);
-          lobbies.get(lobbyName).unclaimedIps.delete(playerId);
-          console.log('Switcho', lobbies.get(lobbyName).players[playerIndex]);
-          return true;
-        }
+    if (lobbies.has(lobbyName) && lobbies.get(lobbyName).unclaimedIps.has(playerId) && lobbies.get(lobbyName).unclaimedIps.get(playerId) === ipAddress) {
+      const playerIndex = findPlayerIndex(lobbyName, playerId);
+      if (playerIndex !== -1) {
+        // console.log(`Success switching`, { ...lobbies.get(lobbyName).players[playerIndex], id: newID });
+        lobbies.get(lobbyName).players[playerIndex] = { ...lobbies.get(lobbyName).players[playerIndex], id: newID };
+        updatePlayers(lobbyName, lobbies.get(lobbyName).players);
+        lobbies.get(lobbyName).unclaimedIps.delete(playerId);
+        console.log('Switcho', lobbies.get(lobbyName).players[playerIndex]);
+        return true;
       }
-      return false;
+    }
+    return false;
   });
 
   /**
@@ -327,7 +327,7 @@ export const gameController = (app: Application) => {
    * @param {string} playerdId
    */
   GameSock.onDisconnect((lobbyName: string, playerId: string, ipAddress: string) => {
-    if(!lobbies.has(lobbyName)||typeof lobbyName !== 'string') {
+    if (!lobbies.has(lobbyName) || typeof lobbyName !== 'string') {
       return;
     }
     const pIndex = findPlayerIndex(lobbyName, playerId);
@@ -335,7 +335,7 @@ export const gameController = (app: Application) => {
       console.log('deleting' + lobbyName);
       deleteLobby(lobbyName);
       GameSock.kickAll(lobbyName);
-    } else if(pIndex!==-1){
+    } else if (pIndex !== -1) {
       console.log(`IpAddress: ${ipAddress}`);
       // Allow localhost through
       lobbies.get(lobbyName).unclaimedIps.set(playerId, ipAddress);
@@ -343,7 +343,7 @@ export const gameController = (app: Application) => {
   });
 
   const onRoundStart = async (lobbyName: string, pickedPlayers: Player[], round: number = 1) => {
-    if(!lobbies.has(lobbyName))return
+    if (!lobbies.has(lobbyName)) return;
     console.log('round number', round);
     console.log('pickedplayers', pickedPlayers);
     GameSock.startRound(lobbyName, {
@@ -367,17 +367,17 @@ export const gameController = (app: Application) => {
     lobbies.delete(lobbyName);
   };
 
-  const removeFromLobby = async(lobbyName: string,playerId:string) =>{
-    if(lobbies.has(lobbyName)&& lobbies.get(lobbyName).players.some(player=>player.id===playerId) ){
-      const pIndex =findPlayerIndex(lobbyName,playerId);
-      if(pIndex!==-1){
-        lobbies.get(lobbyName).players.splice(pIndex)
+  const removeFromLobby = async (lobbyName: string, playerId: string) => {
+    if (lobbies.has(lobbyName) && lobbies.get(lobbyName).players.some((player) => player.id === playerId)) {
+      const pIndex = findPlayerIndex(lobbyName, playerId);
+      if (pIndex !== -1) {
+        lobbies.get(lobbyName).players.splice(pIndex);
       }
-      if(lobbies.get(lobbyName).unclaimedIps.has(playerId)){
-        lobbies.get(lobbyName).unclaimedIps.delete(playerId)
+      if (lobbies.get(lobbyName).unclaimedIps.has(playerId)) {
+        lobbies.get(lobbyName).unclaimedIps.delete(playerId);
       }
     }
-  }
+  };
 
   /**
    * Adds points to a specific player
@@ -388,7 +388,7 @@ export const gameController = (app: Application) => {
    */
   const addPoints = (lobbyName: string, playerId: string, points: number) => {
     const pIndex = findPlayerIndex(lobbyName, playerId);
-    if(lobbies.get(lobbyName).players[pIndex])lobbies.get(lobbyName).players[pIndex].score += points;
+    if (lobbies.get(lobbyName).players[pIndex]) lobbies.get(lobbyName).players[pIndex].score += points;
   };
   /**
    *
@@ -421,7 +421,7 @@ export const gameController = (app: Application) => {
    * @return {number} index
    */
   const findPlayerIndex = (lobbyName: string, playerId: string): number => {
-    if( !lobbies.has(lobbyName)) return-1
+    if (!lobbies.has(lobbyName)) return -1;
     return lobbies.get(lobbyName).players.findIndex((player: Player) => playerId === player.id);
   };
 
@@ -433,17 +433,9 @@ export const gameController = (app: Application) => {
    * @return {number} index
    */
   const findPlayerIndexByName = (lobbyName: string, playerName: string): number => {
-    if(!lobbies.has(lobbyName)) return-1
+    if (!lobbies.has(lobbyName)) return -1;
     return lobbies.get(lobbyName).players.findIndex((player: Player) => playerName === player.name);
   };
-
-  /**
-   * Delete Lobbies for testing
-   */
-  // app.get('/api/deleteLobby', (req, res) => {
-  //   lobbies = new Map();
-  //   res.status(200).json('👺');
-  // });
 
   const shuffleAndPair = (array: number[], pairs: number, players: Player[]): Player[][] => {
     let resultIndexArray: number[] = [];
@@ -493,16 +485,19 @@ export const gameController = (app: Application) => {
 
   app = GameSock.startSyncServer(app);
 
-  const httpsOn = process.env.HTTPS||false;
+  const httpsOn = process.env.HTTPS || false;
   // const httpsOn = false;
   let server;
 
   // Choosing https or not - untested
-  if (httpsOn==="true") {
-    server = https.createServer({
-      key: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/privkey.pem'),
-      cert: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/fullchain.pem'),
-    },app);
+  if (httpsOn === 'true') {
+    server = https.createServer(
+      {
+        key: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/privkey.pem'),
+        cert: fs.readFileSync('/etc/letsencrypt/live/api.shcoop.clovux.net/fullchain.pem'),
+      },
+      app
+    );
   } else {
     server = new http.Server(app);
   }
