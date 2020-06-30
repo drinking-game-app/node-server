@@ -18,6 +18,10 @@ import config from '../config/config'
 import app from './express'
 import mongoose from 'mongoose'
 import Session from 'express-session'
+import {Client} from 'raygun';
+
+
+
 
 
 /**
@@ -47,6 +51,8 @@ mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${config.mongoUri}`)
 })
 
+// Start raygun with public api key
+const raygunClient = new Client().init({ apiKey: "bFCdvDJJcwGct6nwxT3EQ" });
 
 /**
  * Listen on the specified port, and for any errors
@@ -54,6 +60,9 @@ mongoose.connection.on('error', () => {
 app.listen(config.port, () => {
   console.info('Server started on port %s.', config.port)
 })
-.on("error", (err: any) => {
+.on("error", (err: any,req:any) => {
   console.error("Server Error: ", err)
+  raygunClient.send(err, {},  ()=> {
+    process.exit();
+  },req, ['Node-Server', 'Server-Listen', process.env.NODE_ENV]);
 })

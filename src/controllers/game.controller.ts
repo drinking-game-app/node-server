@@ -23,6 +23,7 @@ import http from 'http';
 import https from 'https';
 import { questionList as allQuestions } from '../data/Questions.json';
 
+
 interface GameOptions {
   rounds: number;
   numQuestions: number;
@@ -113,6 +114,7 @@ export const gameController = (app: Application) => {
     // Convert to extended version of the lobby
     const customLobby: CustomLobby = { ...lobby, ready: true };
     lobbies.set(lobby.name, customLobby);
+    // throw new Error('Test')
     return true;
   });
 
@@ -484,6 +486,9 @@ export const gameController = (app: Application) => {
   };
 
   app = GameSock.startSyncServer(app);
+
+
+
 
   const httpsOn = process.env.HTTPS || false;
   // const httpsOn = false;

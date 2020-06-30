@@ -35,6 +35,9 @@ import authRoutes from "./routes/auth.routes";
  */
 const app: Application = express();
 
+
+
+
 /**
  * Get the current working directory
  */
@@ -69,6 +72,12 @@ app.use("/dist", express.static(path.join(CURRENT_WORKING_DIR, "dist")));
  */
 app.use("/", userRoutes);
 app.use("/", authRoutes);
+
+
+
+
+
+
 
 export default gameController(app);
 // export default app
