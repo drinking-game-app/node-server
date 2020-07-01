@@ -20,10 +20,6 @@ import mongoose from 'mongoose'
 import Session from 'express-session'
 import {Client} from 'raygun';
 
-
-
-
-
 /**
  * Mongoose Connection configurations
  */
