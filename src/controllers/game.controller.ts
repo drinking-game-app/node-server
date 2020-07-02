@@ -23,7 +23,6 @@ import http from 'http';
 import https from 'https';
 import { questionList as allQuestions } from '../data/Questions.json';
 
-
 interface GameOptions {
   rounds: number;
   numQuestions: number;
@@ -139,11 +138,11 @@ export const gameController = (app: Application) => {
    */
   GameSock.onUpdateSinglePlayer((lobbyName: string, player: Player) => {
     // const lIndex = findLobbyIndex(lobbyName);
+    if (!lobbies.has(lobbyName)) return player;
     const pIndex = findPlayerIndex(lobbyName, player.id);
-
-    player = { ...player, score: 0 };
+    if (pIndex === -1) return player;
+    player = { ...lobbies.get(lobbyName).players[pIndex], name: player.name };
     lobbies.get(lobbyName).players[pIndex] = player;
-
     return player;
   });
 
@@ -316,6 +315,13 @@ export const gameController = (app: Application) => {
         updatePlayers(lobbyName, lobbies.get(lobbyName).players);
         lobbies.get(lobbyName).unclaimedIps.delete(playerId);
         console.log('Switcho', lobbies.get(lobbyName).players[playerIndex]);
+        lobbies.get(lobbyName).hotseatPairs = lobbies.get(lobbyName).hotseatPairs.map((oldPair) => {
+          if (oldPair.length === 2) {
+            return oldPair.map((player) => (player.id === playerId ? { ...player, id: newID } : player)) as [Player, Player];
+          } else {
+            return oldPair as [Player, Player];
+          }
+        });
         return true;
       }
     }
@@ -446,7 +452,12 @@ export const gameController = (app: Application) => {
     } else {
       // Account for when the pairs cannot be directly made from a multiple of all players
       for (let i = Math.ceil(array.length / pairs); i--; ) {
-        resultIndexArray = [...resultIndexArray, ...shuffle(array)];
+        const ogIndexes = resultIndexArray;
+        let appendingIndexes= shuffle(array)
+        while(appendingIndexes[0]===ogIndexes[ogIndexes.length-1]){
+          appendingIndexes= shuffle(array)
+        }
+        resultIndexArray = [...resultIndexArray, ...appendingIndexes];
         console.log('Adding another set of players');
       }
     }
@@ -486,9 +497,6 @@ export const gameController = (app: Application) => {
   };
 
   app = GameSock.startSyncServer(app);
-
-
-
 
   const httpsOn = process.env.HTTPS || false;
   // const httpsOn = false;
