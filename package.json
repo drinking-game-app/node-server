@@ -39,7 +39,7 @@
     "mongoose": "^5.9.18",
     "node-fetch": "^2.6.0",
     "raygun": "^0.12.1",
-    "ts-loader": "^7.0.5",
+    "ts-loader": "^9.4.2",
     "underscore": "^1.10.2"
   },
   "devDependencies": {
